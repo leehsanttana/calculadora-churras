@@ -1,14 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import type {
   Categoria,
   Duracao,
   EntradaChurrasco,
   Perfil,
 } from "@/core/tipos";
-import { ENTRADA_PADRAO, entradaParaQuery } from "@/core/serial";
+import { entradaParaQuery, parseEntrada } from "@/core/serial";
 import {
   CATEGORIAS,
   buscarCorte,
@@ -31,12 +31,16 @@ const DURACOES: { valor: Duracao; titulo: string; descricao: string }[] = [
 
 const TOTAL_ETAPAS = 4;
 
-export default function CalculadoraForm({
-  inicial = ENTRADA_PADRAO,
-}: {
-  inicial?: EntradaChurrasco;
-}) {
+export default function CalculadoraForm() {
   const router = useRouter();
+  // Lê a entrada inicial da URL no cliente (permite export estático e o
+  // "Ajustar" a partir do resultado prefilla o formulário).
+  const searchParams = useSearchParams();
+  const inicial = useMemo(
+    () => parseEntrada(Object.fromEntries(searchParams.entries())),
+    [searchParams],
+  );
+
   const [etapa, setEtapa] = useState(0);
   const [entrada, setEntrada] = useState<EntradaChurrasco>(inicial);
 

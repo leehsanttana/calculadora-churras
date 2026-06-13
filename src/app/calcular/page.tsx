@@ -1,16 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import CalculadoraForm from "@/components/CalculadoraForm";
-import { parseEntrada } from "@/core/serial";
 
-// Rota dinâmica (lê searchParams) — exigido pelo Cloudflare (next-on-pages).
-export const runtime = "edge";
-
-export default async function CalcularPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const inicial = parseEntrada(await searchParams);
+export default function CalcularPage() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center gap-8 px-6 py-10">
       <header className="flex w-full items-center justify-between">
@@ -35,7 +27,9 @@ export default async function CalcularPage({
         </p>
       </div>
 
-      <CalculadoraForm inicial={inicial} />
+      <Suspense fallback={null}>
+        <CalculadoraForm />
+      </Suspense>
     </main>
   );
 }
