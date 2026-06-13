@@ -20,15 +20,60 @@ const display = Bebas_Neue({
   weight: "400",
 });
 
+// URL pública do site (usada para resolver as imagens OG como absolutas).
+// Troque aqui se mudar para um domínio próprio.
+const SITE_URL = "https://sonochurras.pages.dev";
+
+const TITULO = "Calculadora de Churrasco — quanto de carne por pessoa";
+const DESCRICAO =
+  "Descubra a quantidade certa de carne, acompanhamentos e bebidas do seu churrasco — por pessoa, com dicas de cortes, rateio entre amigos e lista pronta pra compartilhar no WhatsApp.";
+
 export const metadata: Metadata = {
-  title: "Calculadora de Churrasco",
-  description:
-    "Planeje a quantidade certa de carne, acompanhamentos e bebidas do seu churrasco — com dicas de cortes por perfil.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: TITULO,
+    template: "%s · Calculadora de Churrasco",
+  },
+  description: DESCRICAO,
+  applicationName: "Calculadora de Churrasco",
+  keywords: [
+    "calculadora de churrasco",
+    "quantidade de carne por pessoa",
+    "carne por pessoa churrasco",
+    "quanto de carne no churrasco",
+    "cortes de carne",
+    "acompanhamentos churrasco",
+    "rateio churrasco",
+    "churrasco copa do mundo",
+  ],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Churras",
+  },
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: SITE_URL,
+    siteName: "Calculadora de Churrasco",
+    title: TITULO,
+    description: DESCRICAO,
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Calculadora de Churrasco — quanto de carne por pessoa",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITULO,
+    description: DESCRICAO,
+    images: ["/og.png"],
   },
 };
 

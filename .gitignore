@@ -44,3 +44,5 @@ next-env.d.ts
 # O app usa os WebP convertidos em public/cortes/. Remova esta linha se quiser
 # versionar os PNGs originais.
 /public/*.png
+# ...mas versiona a imagem de Open Graph (preview ao compartilhar).
+!/public/og.png

@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import CalculadoraForm from "@/components/CalculadoraForm";
+
+export const metadata: Metadata = {
+  title: "Monte seu churrasco",
+  description:
+    "Responda rápido — pessoas, tipos de carne e cortes — e veja a quantidade ideal de carne, acompanhamentos e bebidas.",
+};
 
 export default function CalcularPage() {
   return (
