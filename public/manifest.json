@@ -1,0 +1,24 @@
+{
+  "name": "Calculadora de Churrasco",
+  "short_name": "Churras",
+  "description": "Planeje a quantidade certa do seu churrasco — carne, acompanhamentos, bebidas e dicas de cortes por perfil.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#b91c1c",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

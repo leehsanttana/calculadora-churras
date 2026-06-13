@@ -1,26 +1,112 @@
 @import "tailwindcss";
 
+/* Dark mode é class-based (.dark), controlado pelo ModeToggle. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===== Tema padrão: Copa / Brasil (maximalist) — CLARO ===== */
 :root {
+  --background: #fff9e6; /* creme puxado pro amarelo */
+  --foreground: #08260f;
+  --c-surface: #fffcf0; /* off-white quente (não o branco chapado) */
+  --c-primary: #009c3b; /* verde-bandeira */
+  --c-primary-hover: #007d2f;
+  --c-primary-text: #047a30;
+  --c-primary-soft: #dcfce7;
+  --c-accent: #ffdf00; /* amarelo-ouro */
+  --c-secondary: #1351b4; /* azul */
+  --heading-font: var(--font-display);
+  color-scheme: light;
+}
+
+/* ===== Copa / Brasil — ESCURO (verde-bandeira) ===== */
+.dark {
+  --background: #07170e; /* verde-escuro profundo */
+  --foreground: #f1f6ee;
+  --c-surface: #0f2718; /* card verde-escuro, destacado do fundo */
+  --c-primary: #0a8a38; /* verde mais escuro: texto branco passa no AA */
+  --c-primary-hover: #07752e;
+  --c-primary-text: #5ce69b; /* verde-neon p/ números e destaques */
+  --c-primary-soft: #16381f;
+  --c-accent: #ffd91f; /* amarelo-ouro */
+  --c-secondary: #7f9bff; /* azul */
+  color-scheme: dark;
+}
+
+/* Paleta "churrasco" (vermelho) — guardada para uso futuro (inativa). */
+[data-theme="churrasco"] {
   --background: #ffffff;
   --foreground: #171717;
+  --c-primary: #b91c1c;
+  --c-primary-hover: #991b1b;
+  --c-primary-text: #b91c1c;
+  --c-primary-soft: #fef2f2;
+  --c-accent: #f59e0b;
+  --heading-font: var(--font-geist-sans);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--c-primary);
+  --color-primary-hover: var(--c-primary-hover);
+  --color-primary-text: var(--c-primary-text);
+  --color-primary-soft: var(--c-primary-soft);
+  --color-accent: var(--c-accent);
+  --color-secondary: var(--c-secondary);
+  --color-surface: var(--c-surface);
   --font-sans: var(--font-geist-sans);
+  --font-heading: var(--heading-font);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Sombra "sticker" para os elementos de destaque (CTA, total, submit). */
+@utility shadow-pop {
+  box-shadow: 4px 4px 0 0 var(--foreground);
+}
+@utility shadow-pop-sm {
+  box-shadow: 3px 3px 0 0 var(--foreground);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  /* Textura festiva (confete verde/amarelo). */
+  background-image:
+    radial-gradient(circle, rgba(0, 156, 59, 0.1) 1.5px, transparent 1.6px),
+    radial-gradient(circle, rgba(255, 200, 0, 0.16) 1.5px, transparent 1.6px);
+  background-position:
+    0 0,
+    11px 11px;
+  background-size: 22px 22px;
+  background-attachment: fixed;
+}
+
+@layer base {
+  /* Mobile: remove flash azul no toque e o atraso do duplo-toque. */
+  button,
+  a,
+  label,
+  summary,
+  [role="button"],
+  [role="switch"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Headings com a fonte de display. */
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# imagens-fonte dos cortes (PNGs originais ~2,8MB cada na raiz de public/).
+# O app usa os WebP convertidos em public/cortes/. Remova esta linha se quiser
+# versionar os PNGs originais.
+/public/*.png
