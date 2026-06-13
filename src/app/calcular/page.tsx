@@ -2,6 +2,9 @@ import Link from "next/link";
 import CalculadoraForm from "@/components/CalculadoraForm";
 import { parseEntrada } from "@/core/serial";
 
+// Rota dinâmica (lê searchParams) — exigido pelo Cloudflare (next-on-pages).
+export const runtime = "edge";
+
 export default async function CalcularPage({
   searchParams,
 }: {

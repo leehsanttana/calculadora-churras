@@ -4,6 +4,9 @@ import { parseEntrada } from "@/core/serial";
 import ResultadoView from "@/components/ResultadoView";
 import SalvarChurrasco from "@/components/SalvarChurrasco";
 
+// Rota dinâmica (lê searchParams) — exigido pelo Cloudflare (next-on-pages).
+export const runtime = "edge";
+
 export default async function ResultadoPage({
   searchParams,
 }: {
