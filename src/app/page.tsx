@@ -21,11 +21,13 @@ export default function Home() {
         🏆 Edição Copa do Mundo
       </span>
 
-      <h1 className="font-heading text-5xl uppercase leading-[0.9] sm:text-6xl">
-        Calculadora
-        <br />
-        de Churrasco
+      <h1 className="font-heading text-6xl uppercase leading-[0.9] sm:text-7xl">
+        Sonochurras
       </h1>
+
+      <p className="-mt-3 font-heading text-xl uppercase tracking-wide text-primary-text">
+        Calculadora de churrasco
+      </p>
 
       <p className="max-w-md text-balance text-base text-foreground/70">
         Ano de Copa é ano de churrasco com a galera. Descubra a quantidade certa

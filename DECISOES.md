@@ -1,4 +1,6 @@
-# Calculadora de Churrasco — Decisões do Projeto
+# Sonochurras — Decisões do Projeto
+
+> App: **Sonochurras** (calculadora de churrasco). Domínio: sonochurras.pages.dev
 
 > Documento vivo. Registra as decisões tomadas para não perdermos contexto.
 > Última atualização: 2026-06-09

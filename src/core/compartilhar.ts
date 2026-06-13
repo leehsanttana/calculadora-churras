@@ -45,7 +45,7 @@ export function textoCompartilhar(
   linhas.push(...secao("🥤 BEBIDAS", resultado.bebidas));
 
   linhas.push("");
-  linhas.push("_Feito na Calculadora de Churrasco_ 🇧🇷");
+  linhas.push("_Feito no Sonochurras 🇧🇷 — sonochurras.pages.dev_");
   return linhas.join("\n");
 }
 

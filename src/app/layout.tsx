@@ -24,18 +24,18 @@ const display = Bebas_Neue({
 // Troque aqui se mudar para um domínio próprio.
 const SITE_URL = "https://sonochurras.pages.dev";
 
-const TITULO = "Calculadora de Churrasco — quanto de carne por pessoa";
+const TITULO = "Sonochurras — quanto de carne por pessoa no churrasco";
 const DESCRICAO =
-  "Descubra a quantidade certa de carne, acompanhamentos e bebidas do seu churrasco — por pessoa, com dicas de cortes, rateio entre amigos e lista pronta pra compartilhar no WhatsApp.";
+  "O Sonochurras descobre a quantidade certa de carne, acompanhamentos e bebidas do seu churrasco — por pessoa, com dicas de cortes, rateio entre amigos e lista pronta pra compartilhar no WhatsApp.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITULO,
-    template: "%s · Calculadora de Churrasco",
+    template: "%s · Sonochurras",
   },
   description: DESCRICAO,
-  applicationName: "Calculadora de Churrasco",
+  applicationName: "Sonochurras",
   keywords: [
     "calculadora de churrasco",
     "quantidade de carne por pessoa",
@@ -50,14 +50,14 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Churras",
+    title: "Sonochurras",
   },
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "pt_BR",
     url: SITE_URL,
-    siteName: "Calculadora de Churrasco",
+    siteName: "Sonochurras",
     title: TITULO,
     description: DESCRICAO,
     images: [
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Calculadora de Churrasco — quanto de carne por pessoa",
+        alt: "Sonochurras — calculadora de churrasco",
       },
     ],
   },

@@ -1,6 +1,6 @@
 {
-  "name": "Calculadora de Churrasco",
-  "short_name": "Churras",
+  "name": "Sonochurras",
+  "short_name": "Sonochurras",
   "description": "Planeje a quantidade certa do seu churrasco — carne, acompanhamentos, bebidas e dicas de cortes por perfil.",
   "start_url": "/",
   "display": "standalone",
