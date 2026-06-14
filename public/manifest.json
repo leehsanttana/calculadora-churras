@@ -4,8 +4,8 @@
   "description": "Planeje a quantidade certa do seu churrasco — carne, acompanhamentos, bebidas e dicas de cortes por perfil.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#b91c1c",
+  "background_color": "#fff9e6",
+  "theme_color": "#009c3b",
   "lang": "pt-BR",
   "icons": [
     {
