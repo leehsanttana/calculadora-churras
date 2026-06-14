@@ -5,4 +5,4 @@ pages_build_output_dir = "./out"
 [[d1_databases]]
 binding      = "DB"
 database_name = "sonochurras-salas"
-database_id  = "REPLACE_COM_SEU_DATABASE_ID"
+database_id  = "35151f96-eb35-41bf-a782-02297ae9b454"
