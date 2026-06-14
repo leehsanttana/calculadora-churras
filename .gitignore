@@ -46,3 +46,5 @@ next-env.d.ts
 /public/*.png
 # ...mas versiona a imagem de Open Graph (preview ao compartilhar).
 !/public/og.png
+# ...e o ícone para iOS (apple-touch-icon).
+!/public/apple-touch-icon.png
