@@ -96,3 +96,36 @@ export interface ChurrascoSalvo {
   criadoEm: string; // ISO date
   entrada: EntradaChurrasco;
 }
+
+// ─── Sala de rateio colaborativa ──────────────────────────────────────────────
+
+export interface ParticipanteSala {
+  id: string;
+  nome: string;
+}
+
+export interface CompromissoSala {
+  id: string;
+  participanteId: string;
+  participanteNome: string;
+  itemChave: string;   // "{nome}|{unidade}" — identifica o item de forma única
+  itemNome: string;
+  quantidade: number;
+  unidade: string;
+}
+
+/** Estado completo da sala retornado pelo GET /api/salas/:code */
+export interface EstadoSala {
+  code: string;
+  nome: string;
+  encerrada: boolean;
+  resultado: ResultadoChurrasco;
+  participantes: ParticipanteSala[];
+  compromissos: CompromissoSala[];
+}
+
+/** Dados guardados no localStorage pelo dispositivo do participante */
+export interface SessaoSala {
+  participanteId: string;
+  hostToken?: string; // só presente no dispositivo do anfitrião
+}

@@ -40,15 +40,32 @@ function Secao({
   );
 }
 
+interface Props {
+  resultado: ResultadoChurrasco;
+  pessoas: number;
+  contribuintes: number;
+  // sala de rateio
+  nomeSala?: string;
+  setNomeSala?: (v: string) => void;
+  onCriarSala?: () => void;
+  criandoSala?: boolean;
+  erroCriacao?: string;
+  salaCode?: string | null;
+  onCopiarLink?: (code: string) => void;
+}
+
 export default function ResultadoView({
   resultado,
   pessoas,
   contribuintes,
-}: {
-  resultado: ResultadoChurrasco;
-  pessoas: number;
-  contribuintes: number;
-}) {
+  nomeSala,
+  setNomeSala,
+  onCriarSala,
+  criandoSala,
+  erroCriacao,
+  salaCode,
+  onCopiarLink,
+}: Props) {
   const arredondar2 = (n: number) => Math.round(n * 100) / 100;
   const total = resultado.totalCompraKg;
   const porPessoaKg = pessoas > 0 ? arredondar2(total / pessoas) : 0;
@@ -105,6 +122,69 @@ export default function ResultadoView({
         vazio="Você marcou sem acompanhamentos."
       />
       <Secao titulo="Bebidas" emoji="🥤" itens={resultado.bebidas} />
+
+      {/* Sala de rateio */}
+      {onCriarSala && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-surface p-5 dark:border-white/15">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl" aria-hidden>🤝</span>
+            <div>
+              <p className="font-semibold">Sala de rateio</p>
+              <p className="text-xs text-foreground/55">
+                Compartilhe com os amigos e veja quem leva o quê.
+              </p>
+            </div>
+          </div>
+
+          {salaCode ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3">
+                <div>
+                  <p className="text-xs text-foreground/60">Código da sala</p>
+                  <p className="font-mono text-lg font-bold tracking-widest text-primary-text">
+                    {salaCode}
+                  </p>
+                </div>
+                <a
+                  href={`/sala?code=${salaCode}`}
+                  className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-pop-sm"
+                >
+                  Abrir sala
+                </a>
+              </div>
+              <button
+                type="button"
+                onClick={() => onCopiarLink?.(salaCode)}
+                className="rounded-full border border-black/15 py-2.5 text-sm font-medium dark:border-white/20"
+              >
+                Copiar link da sala
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <input
+                type="text"
+                value={nomeSala ?? ""}
+                onChange={(e) => setNomeSala?.(e.target.value)}
+                placeholder="Nome do churrasco"
+                maxLength={50}
+                className="rounded-xl border border-black/15 bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary dark:border-white/20"
+              />
+              {erroCriacao && (
+                <p className="text-xs text-red-600 dark:text-red-400">{erroCriacao}</p>
+              )}
+              <button
+                type="button"
+                onClick={onCriarSala}
+                disabled={criandoSala || !nomeSala?.trim()}
+                className="rounded-full border-2 border-foreground bg-primary py-2.5 text-sm font-semibold text-white shadow-pop-sm transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {criandoSala ? "Criando sala…" : "Criar sala de rateio 🤝"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <p className="text-center text-xs text-black/40 dark:text-white/40">
         Valores médios de referência em quantidade — ajuste conforme o apetite
