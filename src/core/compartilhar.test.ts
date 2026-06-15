@@ -9,10 +9,10 @@ const entrada: EntradaChurrasco = {
   contribuintes: 2,
   perfil: "intermediario",
   duracao: "medio",
-  temAcompanhamento: false,
-  temSobremesa: false,
-  bebeAlcool: true,
   cortes: ["picanha", "linguica-toscana"],
+  acompanhamentos: [],
+  sobremesas: [],
+  bebidas: ["cerveja"],
 };
 
 describe("textoCompartilhar", () => {

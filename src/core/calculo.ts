@@ -45,19 +45,17 @@ function arredondar(valor: number, casas = 1): number {
 export function calcularChurrasco(
   entrada: EntradaChurrasco,
 ): ResultadoChurrasco {
-  const {
-    adultos,
-    criancas,
-    perfil,
-    duracao,
-    temAcompanhamento,
-    temSobremesa,
-    bebeAlcool,
-  } = entrada;
+  const { adultos, criancas, duracao } = entrada;
 
   const pessoasTotal = adultos + criancas;
   const pessoasEquivCarne = adultos + criancas * FATOR_CRIANCA;
   const horas = HORAS_POR_DURACAO[duracao];
+
+  // Itens selecionados pelo usuário (igual aos cortes).
+  const acompSelecionados = new Set(entrada.acompanhamentos);
+  const sobremesasSelecionadas = new Set(entrada.sobremesas);
+  const bebidasSelecionadas = new Set(entrada.bebidas);
+  const temAcompanhamento = entrada.acompanhamentos.length > 0;
 
   // ── Carnes ────────────────────────────────────────────────────────
   const gramasAlvoAdulto = Math.max(
@@ -91,8 +89,11 @@ export function calcularChurrasco(
         ? totalCarneGramas / numCategorias / naCategoria / 1000
         : 0;
     // Bovina e suína são compradas em peça/no açougue: arredonda pra cima ao
-    // quilo cheio. Aves, embutidos e cordeiro mantêm granularidade fina.
-    const emPeca = corte.categoria === "bovina" || corte.categoria === "suina";
+    // quilo cheio. Itens vendidos a peso (fracionado, ex.: linguiça), aves e
+    // cordeiro mantêm granularidade fina.
+    const emPeca =
+      (corte.categoria === "bovina" || corte.categoria === "suina") &&
+      !corte.fracionado;
     const quantidade =
       kgBruto <= 0
         ? 0
@@ -106,7 +107,6 @@ export function calcularChurrasco(
       unidade: "kg",
       categoria: corte.categoria,
       dica: corte.dica,
-      marcas: corte.marcas,
       emoji: corte.emoji,
       imagem: corte.imagem,
     };
@@ -130,50 +130,74 @@ export function calcularChurrasco(
     imagem: corte.imagem,
   }));
 
-  // ── Acompanhamentos ───────────────────────────────────────────────
+  // ── Acompanhamentos e sobremesas (só os selecionados) ─────────────
   const acompanhamentos: ItemResultado[] = [];
+  const sobremesas: ItemResultado[] = [];
   if (pessoasTotal > 0) {
     for (const item of ACOMPANHAMENTOS) {
-      if (item.categoria === "sobremesa" && !temSobremesa) continue;
-      if (item.categoria === "acompanhamento" && !temAcompanhamento) continue;
+      const ehSobremesa = item.categoria === "sobremesa";
+      const selecionado = ehSobremesa
+        ? sobremesasSelecionadas.has(item.id)
+        : acompSelecionados.has(item.id);
+      if (!selecionado) continue;
 
-      if (item.unidadesPorPessoa != null) {
-        acompanhamentos.push({
-          id: item.id,
-          nome: item.nome,
-          quantidade: Math.ceil(item.unidadesPorPessoa * pessoasTotal),
-          unidade: "un",
-          dica: item.dica,
-        });
-      } else if (item.gramasPorPessoa != null) {
-        acompanhamentos.push({
-          id: item.id,
-          nome: item.nome,
-          quantidade: arredondar((item.gramasPorPessoa * pessoasTotal) / 1000, 2),
-          unidade: "kg",
-          dica: item.dica,
-        });
-      }
+      const linha: ItemResultado =
+        item.unidadesPorPessoa != null
+          ? {
+              id: item.id,
+              nome: item.nome,
+              quantidade: Math.ceil(item.unidadesPorPessoa * pessoasTotal),
+              unidade: "un",
+              dica: item.dica,
+              emoji: item.emoji,
+            }
+          : {
+              id: item.id,
+              nome: item.nome,
+              quantidade: arredondar(
+                ((item.gramasPorPessoa ?? 0) * pessoasTotal) / 1000,
+                2,
+              ),
+              unidade: "kg",
+              dica: item.dica,
+              emoji: item.emoji,
+            };
+
+      (ehSobremesa ? sobremesas : acompanhamentos).push(linha);
     }
   }
 
-  // ── Bebidas ───────────────────────────────────────────────────────
+  // ── Bebidas (só as selecionadas) ──────────────────────────────────
+  // Alcoólicas contam só adultos; não-alcoólicas contam todos.
   const bebidas: ItemResultado[] = [];
   for (const bebida of BEBIDAS) {
-    if (bebida.alcoolica && !bebeAlcool) continue;
+    if (!bebidasSelecionadas.has(bebida.id)) continue;
 
     if (bebida.latasPorAdultoHora != null) {
       const latas = Math.ceil(bebida.latasPorAdultoHora * adultos * horas);
       if (latas > 0) {
-        bebidas.push({ nome: bebida.nome, quantidade: latas, unidade: "un" });
+        bebidas.push({
+          id: bebida.id,
+          nome: bebida.nome,
+          quantidade: latas,
+          unidade: "un",
+          emoji: bebida.emoji,
+        });
       }
     } else if (bebida.litrosPorPessoaHora != null) {
+      const consumidores = bebida.alcoolica ? adultos : pessoasTotal;
       const litros = arredondar(
-        bebida.litrosPorPessoaHora * pessoasTotal * horas,
+        bebida.litrosPorPessoaHora * consumidores * horas,
         1,
       );
       if (litros > 0) {
-        bebidas.push({ nome: bebida.nome, quantidade: litros, unidade: "L" });
+        bebidas.push({
+          id: bebida.id,
+          nome: bebida.nome,
+          quantidade: litros,
+          unidade: "L",
+          emoji: bebida.emoji,
+        });
       }
     }
   }
@@ -182,6 +206,7 @@ export function calcularChurrasco(
     carnes,
     extras,
     acompanhamentos,
+    sobremesas,
     bebidas,
     totalCarneKg,
     totalCompraKg,

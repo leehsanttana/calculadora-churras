@@ -8,10 +8,10 @@ const base: EntradaChurrasco = {
   contribuintes: 1,
   perfil: "intermediario",
   duracao: "medio",
-  temAcompanhamento: false,
-  temSobremesa: false,
-  bebeAlcool: true,
   cortes: [],
+  acompanhamentos: [],
+  sobremesas: [],
+  bebidas: [],
 };
 
 describe("calcularChurrasco — carnes", () => {
@@ -34,7 +34,10 @@ describe("calcularChurrasco — carnes", () => {
 
   it("desconta 100g/adulto quando há acompanhamento", () => {
     const semAcomp = calcularChurrasco(base);
-    const comAcomp = calcularChurrasco({ ...base, temAcompanhamento: true });
+    const comAcomp = calcularChurrasco({
+      ...base,
+      acompanhamentos: ["vinagrete"],
+    });
     // 450 → 350 por adulto ⇒ -1kg para 10 adultos
     expect(semAcomp.totalCarneKg - comAcomp.totalCarneKg).toBeCloseTo(1, 1);
   });
@@ -46,6 +49,17 @@ describe("calcularChurrasco — carnes", () => {
     });
     const soma = r.carnes.reduce((s, c) => s + c.quantidade, 0);
     expect(soma).toBeCloseTo(r.totalCompraKg, 2);
+  });
+
+  it("linguiça toscana (suína, mas fracionada) não arredonda pra quilo cheio", () => {
+    const r = calcularChurrasco({
+      ...base,
+      adultos: 3, // gera valor quebrado
+      cortes: ["linguica-toscana"],
+    });
+    const linguica = r.carnes.find((c) => c.id === "linguica-toscana");
+    // se fosse tratada como peça (ceil), cairia em inteiro; aqui é fracionada
+    expect(linguica?.quantidade).not.toBe(Math.ceil(linguica!.quantidade));
   });
 
   it("arredonda bovina e suína pra cima ao quilo cheio", () => {
@@ -106,7 +120,9 @@ describe("calcularChurrasco — carnes", () => {
       2,
     );
 
-    // 2 categorias (aves + embutidos), 1 corte cada → mesma quantidade
+    // 2 categorias (aves + suína), 1 corte cada → mesma quantidade.
+    // A linguiça toscana é suína mas fracionada (granularidade fina), então
+    // não sofre o arredondamento "peça de açougue" e a divisão bate.
     const duasCategorias = calcularChurrasco({
       ...base,
       cortes: ["coxa-sobrecoxa", "linguica-toscana"],
@@ -123,30 +139,59 @@ describe("calcularChurrasco — carnes", () => {
       ...base,
       adultos: 1,
       duracao: "curto", // 300 - 100 = 200, acima do piso de 150
-      temAcompanhamento: true,
+      acompanhamentos: ["vinagrete"],
     });
     expect(r.totalCarneKg).toBeCloseTo(0.2, 2);
   });
 });
 
 describe("calcularChurrasco — bebidas", () => {
-  it("não inclui cerveja quando o grupo não bebe álcool", () => {
-    const r = calcularChurrasco({ ...base, bebeAlcool: false });
-    expect(r.bebidas.some((b) => /cerveja/i.test(b.nome))).toBe(false);
+  it("só inclui as bebidas selecionadas", () => {
+    const r = calcularChurrasco(base); // base.bebidas === []
+    expect(r.bebidas).toHaveLength(0);
+
+    const comCerveja = calcularChurrasco({ ...base, bebidas: ["cerveja"] });
+    expect(comCerveja.bebidas.some((b) => /cerveja/i.test(b.nome))).toBe(true);
   });
 
-  it("inclui cerveja quando o grupo bebe álcool", () => {
-    const r = calcularChurrasco(base);
-    expect(r.bebidas.some((b) => /cerveja/i.test(b.nome))).toBe(true);
+  it("alcoólicas em litros contam só adultos; não-alcoólicas contam todos", () => {
+    // refrigerante (não-alcoólico) cresce com crianças; cerveja é por lata/adulto.
+    const soAdultos = calcularChurrasco({
+      ...base,
+      adultos: 10,
+      criancas: 0,
+      bebidas: ["refrigerante"],
+    });
+    const comCriancas = calcularChurrasco({
+      ...base,
+      adultos: 10,
+      criancas: 10,
+      bebidas: ["refrigerante"],
+    });
+    const refriSo = soAdultos.bebidas.find((b) => /refrigerante/i.test(b.nome));
+    const refriCom = comCriancas.bebidas.find((b) => /refrigerante/i.test(b.nome));
+    expect(refriCom!.quantidade).toBeGreaterThan(refriSo!.quantidade);
+  });
+
+  it("dá emoji próprio às bebidas (não cai no fallback de carne)", () => {
+    const r = calcularChurrasco({ ...base, bebidas: ["refrigerante"] });
+    expect(r.bebidas[0].emoji).toBe("🥤");
   });
 });
 
-describe("calcularChurrasco — acompanhamentos", () => {
-  it("só inclui sobremesa quando solicitada", () => {
+describe("calcularChurrasco — acompanhamentos e sobremesas", () => {
+  it("só inclui os itens selecionados", () => {
     const sem = calcularChurrasco(base);
     expect(sem.acompanhamentos.length).toBe(0);
 
-    const com = calcularChurrasco({ ...base, temSobremesa: true });
-    expect(com.acompanhamentos.some((a) => /abacaxi/i.test(a.nome))).toBe(true);
+    const com = calcularChurrasco({
+      ...base,
+      acompanhamentos: ["vinagrete"],
+      sobremesas: ["abacaxi-grelhado"],
+    });
+    expect(com.acompanhamentos.some((a) => /vinagrete/i.test(a.nome))).toBe(true);
+    // sobremesas agora têm seu próprio array, separado dos acompanhamentos
+    expect(com.acompanhamentos.some((a) => /abacaxi/i.test(a.nome))).toBe(false);
+    expect(com.sobremesas.some((a) => /abacaxi/i.test(a.nome))).toBe(true);
   });
 });
