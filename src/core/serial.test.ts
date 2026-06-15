@@ -10,10 +10,10 @@ describe("serial — parse/serialize entrada", () => {
       contribuintes: 4,
       perfil: "sofisticado",
       duracao: "longo",
-      temAcompanhamento: false,
-      temSobremesa: true,
-      bebeAlcool: false,
       cortes: ["bife-ancho", "short-rib"],
+      acompanhamentos: ["vinagrete", "farofa"],
+      sobremesas: ["abacaxi-grelhado"],
+      bebidas: ["cerveja", "agua"],
     };
     const query = entradaParaQuery(entrada);
     const params = Object.fromEntries(new URLSearchParams(query));
@@ -36,10 +36,24 @@ describe("serial — parse/serialize entrada", () => {
     expect(parseEntrada({ contrib: "5" }).contribuintes).toBe(5);
   });
 
-  it("interpreta flags booleanas '1'/'0'", () => {
-    const r = parseEntrada({ acomp: "0", sobremesa: "1", alcool: "0" });
-    expect(r.temAcompanhamento).toBe(false);
-    expect(r.temSobremesa).toBe(true);
-    expect(r.bebeAlcool).toBe(false);
+  it("interpreta listas de itens separadas por vírgula", () => {
+    const r = parseEntrada({
+      cortes: "picanha,fraldinha",
+      acomp: "vinagrete,arroz",
+      sobremesa: "abacaxi-grelhado",
+      bebidas: "cerveja",
+    });
+    expect(r.cortes).toEqual(["picanha", "fraldinha"]);
+    expect(r.acompanhamentos).toEqual(["vinagrete", "arroz"]);
+    expect(r.sobremesas).toEqual(["abacaxi-grelhado"]);
+    expect(r.bebidas).toEqual(["cerveja"]);
+  });
+
+  it("listas ausentes viram arrays vazios", () => {
+    const r = parseEntrada({});
+    expect(r.cortes).toEqual([]);
+    expect(r.acompanhamentos).toEqual([]);
+    expect(r.sobremesas).toEqual([]);
+    expect(r.bebidas).toEqual([]);
   });
 });

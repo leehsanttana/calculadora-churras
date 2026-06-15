@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { EstadoSala, SessaoSala } from "@/core/tipos";
+import { entradaParaQuery } from "@/core/serial";
+import { buscarSala as buscarSalaLocal } from "@/storage/salas";
 import SalaView from "@/components/SalaView";
 
 const POLLING_MS = 4000;
@@ -206,6 +208,13 @@ export default function SalaCliente() {
     );
   }
 
+  // Link de edição (só faz sentido para o anfitrião, que tem a entrada salva).
+  const salaLocal = buscarSalaLocal(code);
+  const linkEditar =
+    sessao.hostToken && salaLocal
+      ? `/calcular?${entradaParaQuery(salaLocal.entrada)}&sala=${code}`
+      : undefined;
+
   return (
     <SalaView
       sala={sala}
@@ -213,6 +222,7 @@ export default function SalaCliente() {
       onEncerrar={sessao.hostToken ? encerrarSala : undefined}
       onRemoverCompromisso={sessao.hostToken ? removerCompromisso : undefined}
       onAtualizar={buscarSala}
+      linkEditar={linkEditar}
     />
   );
 }

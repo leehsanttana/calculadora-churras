@@ -1,8 +1,10 @@
 import Link from "next/link";
+import RedirecionarParaSalas from "@/components/RedirecionarParaSalas";
 
 export default function Home() {
   return (
     <main className="relative flex flex-1 flex-col items-center justify-center gap-7 overflow-hidden px-6 py-16 text-center">
+      <RedirecionarParaSalas />
       {/* Faixa tricolor — identidade brasileira. */}
       <div
         aria-hidden
@@ -46,7 +48,7 @@ export default function Home() {
         href="/meus-churrascos"
         className="font-semibold text-foreground/60 underline-offset-4 hover:underline"
       >
-        Ver meus churrascos salvos
+        Ver minhas listas
       </Link>
     </main>
   );

@@ -7,6 +7,7 @@
 export interface Acompanhamento {
   id: string;
   nome: string;
+  emoji: string;
   /** Quando a porção é por peso. */
   gramasPorPessoa?: number;
   /** Quando a porção é por unidade (ex.: pão de alho). */
@@ -21,26 +22,51 @@ export const ACOMPANHAMENTOS: Acompanhamento[] = [
   {
     id: "vinagrete",
     nome: "Vinagrete",
+    emoji: "🥗",
     gramasPorPessoa: 60,
     categoria: "acompanhamento",
   },
   {
     id: "farofa",
     nome: "Farofa",
+    emoji: "🥣",
     gramasPorPessoa: 50,
     categoria: "acompanhamento",
   },
   {
     id: "arroz",
     nome: "Arroz",
+    emoji: "🍚",
     gramasPorPessoa: 100,
+    categoria: "acompanhamento",
+  },
+  {
+    id: "pao",
+    nome: "Pão francês",
+    emoji: "🍞",
+    unidadesPorPessoa: 1,
+    categoria: "acompanhamento",
+  },
+  {
+    id: "maionese",
+    nome: "Salada de maionese",
+    emoji: "🥔",
+    gramasPorPessoa: 80,
     categoria: "acompanhamento",
   },
   {
     id: "abacaxi-grelhado",
     nome: "Abacaxi grelhado com canela",
+    emoji: "🍍",
     gramasPorPessoa: 80,
     categoria: "sobremesa",
     dica: "Polvilhe canela e açúcar antes de grelhar.",
+  },
+  {
+    id: "sorvete",
+    nome: "Sorvete",
+    emoji: "🍨",
+    gramasPorPessoa: 100,
+    categoria: "sobremesa",
   },
 ];

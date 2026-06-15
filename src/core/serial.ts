@@ -13,10 +13,10 @@ export const ENTRADA_PADRAO: EntradaChurrasco = {
   contribuintes: 1,
   perfil: "intermediario",
   duracao: "medio",
-  temAcompanhamento: true,
-  temSobremesa: false,
-  bebeAlcool: true,
   cortes: [],
+  acompanhamentos: [],
+  sobremesas: [],
+  bebidas: [],
 };
 
 function inteiroNaoNegativo(valor: unknown, padrao: number): number {
@@ -28,12 +28,6 @@ function umDe<T extends string>(valor: unknown, opcoes: T[], padrao: T): T {
   return opcoes.includes(valor as T) ? (valor as T) : padrao;
 }
 
-function booleano(valor: unknown, padrao: boolean): boolean {
-  if (valor === "1" || valor === "true") return true;
-  if (valor === "0" || valor === "false") return false;
-  return padrao;
-}
-
 /** Converte os params da URL em uma entrada válida (com defaults). */
 export function parseEntrada(
   params: Record<string, string | string[] | undefined>,
@@ -42,6 +36,7 @@ export function parseEntrada(
     const v = params[k];
     return Array.isArray(v) ? v[0] : v;
   };
+  const lista = (k: string) => (get(k) ?? "").split(",").filter(Boolean);
 
   return {
     adultos: inteiroNaoNegativo(get("adultos"), ENTRADA_PADRAO.adultos),
@@ -52,10 +47,10 @@ export function parseEntrada(
     ),
     perfil: umDe(get("perfil"), PERFIS, ENTRADA_PADRAO.perfil),
     duracao: umDe(get("duracao"), DURACOES, ENTRADA_PADRAO.duracao),
-    temAcompanhamento: booleano(get("acomp"), ENTRADA_PADRAO.temAcompanhamento),
-    temSobremesa: booleano(get("sobremesa"), ENTRADA_PADRAO.temSobremesa),
-    bebeAlcool: booleano(get("alcool"), ENTRADA_PADRAO.bebeAlcool),
-    cortes: (get("cortes") ?? "").split(",").filter(Boolean),
+    cortes: lista("cortes"),
+    acompanhamentos: lista("acomp"),
+    sobremesas: lista("sobremesa"),
+    bebidas: lista("bebidas"),
   };
 }
 
@@ -67,12 +62,12 @@ export function entradaParaQuery(entrada: EntradaChurrasco): string {
     contrib: String(entrada.contribuintes),
     perfil: entrada.perfil,
     duracao: entrada.duracao,
-    acomp: entrada.temAcompanhamento ? "1" : "0",
-    sobremesa: entrada.temSobremesa ? "1" : "0",
-    alcool: entrada.bebeAlcool ? "1" : "0",
   });
-  if (entrada.cortes.length > 0) {
-    params.set("cortes", entrada.cortes.join(","));
-  }
+  if (entrada.cortes.length > 0) params.set("cortes", entrada.cortes.join(","));
+  if (entrada.acompanhamentos.length > 0)
+    params.set("acomp", entrada.acompanhamentos.join(","));
+  if (entrada.sobremesas.length > 0)
+    params.set("sobremesa", entrada.sobremesas.join(","));
+  if (entrada.bebidas.length > 0) params.set("bebidas", entrada.bebidas.join(","));
   return params.toString();
 }

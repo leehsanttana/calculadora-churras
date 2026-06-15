@@ -1,44 +1,6 @@
-import type { ItemResultado, ResultadoChurrasco } from "@/core/tipos";
+import type { ResultadoChurrasco } from "@/core/tipos";
 import { formatarPesoKg } from "@/core/formato";
-import ItemLinha from "@/components/ItemLinha";
-import CarnesTabs from "@/components/CarnesTabs";
-
-function Secao({
-  titulo,
-  emoji,
-  itens,
-  vazio,
-}: {
-  titulo: string;
-  emoji: string;
-  itens: ItemResultado[];
-  vazio?: string;
-}) {
-  if (itens.length === 0) {
-    if (!vazio) return null;
-    return (
-      <section className="flex flex-col gap-3">
-        <h2 className="flex items-center gap-2 font-heading text-xl uppercase tracking-wide">
-          <span aria-hidden>{emoji}</span> {titulo}
-        </h2>
-        <p className="text-sm text-black/50 dark:text-white/50">{vazio}</p>
-      </section>
-    );
-  }
-
-  return (
-    <section className="flex flex-col gap-3">
-      <h2 className="flex items-center gap-2 font-heading text-xl uppercase tracking-wide">
-        <span aria-hidden>{emoji}</span> {titulo}
-      </h2>
-      <ul className="flex flex-col gap-3">
-        {itens.map((item) => (
-          <ItemLinha key={item.nome} item={item} />
-        ))}
-      </ul>
-    </section>
-  );
-}
+import ResultadoTabs from "@/components/ResultadoTabs";
 
 interface Props {
   resultado: ResultadoChurrasco;
@@ -52,6 +14,9 @@ interface Props {
   erroCriacao?: string;
   salaCode?: string | null;
   onCopiarLink?: (code: string) => void;
+  // edição de uma sala existente
+  editando?: boolean;
+  onSalvarEdicao?: () => void;
 }
 
 export default function ResultadoView({
@@ -65,6 +30,8 @@ export default function ResultadoView({
   erroCriacao,
   salaCode,
   onCopiarLink,
+  editando,
+  onSalvarEdicao,
 }: Props) {
   const arredondar2 = (n: number) => Math.round(n * 100) / 100;
   const total = resultado.totalCompraKg;
@@ -113,25 +80,21 @@ export default function ResultadoView({
         </div>
       </div>
 
-      <CarnesTabs itens={resultado.carnes} />
-      <Secao titulo="Extras da grelha" emoji="🧀" itens={resultado.extras} />
-      <Secao
-        titulo="Acompanhamentos"
-        emoji="🥗"
-        itens={resultado.acompanhamentos}
-        vazio="Você marcou sem acompanhamentos."
-      />
-      <Secao titulo="Bebidas" emoji="🥤" itens={resultado.bebidas} />
+      <ResultadoTabs resultado={resultado} />
 
       {/* Sala de rateio */}
       {onCriarSala && (
         <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-surface p-5 dark:border-white/15">
           <div className="flex items-center gap-2">
-            <span className="text-2xl" aria-hidden>🤝</span>
+            <span className="text-2xl" aria-hidden>{editando ? "✏️" : "🤝"}</span>
             <div>
-              <p className="font-semibold">Sala de rateio</p>
+              <p className="font-semibold">
+                {editando ? "Editar lista" : "Sala de rateio"}
+              </p>
               <p className="text-xs text-foreground/55">
-                Compartilhe com os amigos e veja quem leva o quê.
+                {editando
+                  ? "As alterações aparecem para todos na sala."
+                  : "Compartilhe com os amigos e veja quem leva o quê."}
               </p>
             </div>
           </div>
@@ -175,11 +138,17 @@ export default function ResultadoView({
               )}
               <button
                 type="button"
-                onClick={onCriarSala}
+                onClick={editando ? onSalvarEdicao : onCriarSala}
                 disabled={criandoSala || !nomeSala?.trim()}
                 className="rounded-full border-2 border-foreground bg-primary py-2.5 text-sm font-semibold text-white shadow-pop-sm transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {criandoSala ? "Criando sala…" : "Criar sala de rateio 🤝"}
+                {editando
+                  ? criandoSala
+                    ? "Salvando…"
+                    : "Salvar alterações ✏️"
+                  : criandoSala
+                    ? "Criando sala…"
+                    : "Criar sala de rateio 🤝"}
               </button>
             </div>
           )}

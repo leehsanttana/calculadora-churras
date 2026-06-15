@@ -29,10 +29,16 @@ export interface Corte {
   emoji?: string; // ilustração padrão quando não há foto
   imagem?: string; // foto real opcional (em /public)
   dica?: string; // dica curta de preparo
-  marcas?: string[]; // recomendações de marca
+  /**
+   * Vendido a peso (não em peça de açougue). Bovina/suína normalmente são
+   * arredondadas pra cima ao quilo cheio; quem é fracionado (ex.: linguiça)
+   * mantém a granularidade fina mesmo sendo suíno.
+   */
+  fracionado?: boolean;
   /** Só para categoria "extras": unidades por pessoa (ex.: pão de alho 1,5). */
   porPessoa?: number;
 }
+// (marcas de açougue foram removidas do catálogo)
 
 /** Uma receita de preparo. */
 export interface Receita {
@@ -56,11 +62,14 @@ export interface EntradaChurrasco {
   contribuintes: number;
   perfil: Perfil;
   duracao: Duracao;
-  temAcompanhamento: boolean;
-  temSobremesa: boolean;
-  bebeAlcool: boolean;
-  /** IDs dos cortes escolhidos; vazio = usar os recomendados do perfil. */
+  /** IDs dos cortes escolhidos. */
   cortes: string[];
+  /** IDs dos acompanhamentos escolhidos. */
+  acompanhamentos: string[];
+  /** IDs das sobremesas escolhidas. */
+  sobremesas: string[];
+  /** IDs das bebidas escolhidas. */
+  bebidas: string[];
 }
 
 /** Linha de resultado: um item recomendado com sua quantidade. */
@@ -71,7 +80,6 @@ export interface ItemResultado {
   unidade: "kg" | "g" | "un" | "L";
   categoria?: Categoria;
   dica?: string;
-  marcas?: string[];
   emoji?: string;
   imagem?: string;
 }
@@ -82,19 +90,12 @@ export interface ResultadoChurrasco {
   /** Extras da grelha (pão de alho, queijo coalho) — por pessoa, em unidades. */
   extras: ItemResultado[];
   acompanhamentos: ItemResultado[];
+  sobremesas: ItemResultado[];
   bebidas: ItemResultado[];
   /** Total ideal de carne (gramatura recomendada, antes de arredondar). */
   totalCarneKg: number;
   /** Total a comprar: soma dos cortes já arredondados (peças em kg cheio). */
   totalCompraKg: number;
-}
-
-/** Um churrasco salvo pelo usuário (persistência local). */
-export interface ChurrascoSalvo {
-  id: string;
-  nome: string;
-  criadoEm: string; // ISO date
-  entrada: EntradaChurrasco;
 }
 
 // ─── Sala de rateio colaborativa ──────────────────────────────────────────────

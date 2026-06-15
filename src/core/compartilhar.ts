@@ -42,6 +42,7 @@ export function textoCompartilhar(
   linhas.push(...secao("🥩 CARNES", resultado.carnes));
   linhas.push(...secao("🧀 EXTRAS DA GRELHA", resultado.extras));
   linhas.push(...secao("🥗 ACOMPANHAMENTOS", resultado.acompanhamentos));
+  linhas.push(...secao("🍨 SOBREMESAS", resultado.sobremesas ?? []));
   linhas.push(...secao("🥤 BEBIDAS", resultado.bebidas));
 
   linhas.push("");
