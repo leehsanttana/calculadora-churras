@@ -15,7 +15,6 @@ export const CATEGORIAS: { id: Categoria; nome: string; emoji: string }[] = [
   { id: "bovina", nome: "Bovina", emoji: "🐂" },
   { id: "suina", nome: "Suína", emoji: "🐖" },
   { id: "aves", nome: "Aves", emoji: "🍗" },
-  { id: "embutidos", nome: "Embutidos", emoji: "🌭" },
   { id: "cordeiro", nome: "Cordeiro", emoji: "🐑" },
   { id: "extras", nome: "Extras da grelha", emoji: "🧀" },
 ];
@@ -220,7 +219,7 @@ export const CORTES: Corte[] = [
   {
     id: "linguica-toscana",
     nome: "Linguiça toscana",
-    categoria: "embutidos",
+    categoria: "suina",
     perfisRecomendados: ["simples", "intermediario"],
     emoji: "🌭",
     dica: "Asse inteira em fogo médio; fure só no final para não secar.",
@@ -229,7 +228,7 @@ export const CORTES: Corte[] = [
   {
     id: "linguica-frango",
     nome: "Linguiça de frango",
-    categoria: "embutidos",
+    categoria: "aves",
     perfisRecomendados: ["simples"],
     emoji: "🌭",
     dica: "Opção mais leve; cuidado que assa mais rápido.",

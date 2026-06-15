@@ -27,7 +27,11 @@ export default function CarnesTabs({ itens }: { itens: ItemResultado[] }) {
       </h2>
 
       {presentes.length > 1 && (
-        <div role="tablist" aria-label="Tipos de carne" className="flex gap-2 overflow-x-auto pb-1">
+        <div
+          role="tablist"
+          aria-label="Tipos de carne"
+          className="flex gap-2 overflow-x-auto pb-1"
+        >
           {presentes.map((c) => {
             const sel = c.id === ativaValida;
             return (
@@ -37,10 +41,10 @@ export default function CarnesTabs({ itens }: { itens: ItemResultado[] }) {
                 role="tab"
                 aria-selected={sel}
                 onClick={() => setAtiva(c.id)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   sel
-                    ? "border-primary bg-primary text-white"
-                    : "border-black/15 hover:border-black/30 dark:border-white/20 dark:hover:border-white/40"
+                    ? "border-primary bg-primary text-white shadow-sm"
+                    : "border-black/10 bg-surface hover:border-black/25 dark:border-white/15 dark:hover:border-white/30"
                 }`}
               >
                 <span aria-hidden>{c.emoji}</span> {c.nome}

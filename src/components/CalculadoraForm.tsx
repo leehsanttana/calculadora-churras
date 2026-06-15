@@ -326,7 +326,11 @@ function EtapaCortes({
       )}
 
       {/* Guias por tipo de carne */}
-      <div role="tablist" aria-label="Tipos de carne" className="flex gap-2 overflow-x-auto pb-1">
+      <div
+        role="tablist"
+        aria-label="Tipos de carne"
+        className="flex gap-2 overflow-x-auto pb-1"
+      >
         {cats.map((cat) => {
           const sel = cat.id === abaValida;
           const escolhidos = cortesPorCategoria(cat.id).filter((x) =>
@@ -339,10 +343,10 @@ function EtapaCortes({
               role="tab"
               aria-selected={sel}
               onClick={() => setAba(cat.id)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 sel
-                  ? "border-primary bg-primary text-white"
-                  : "border-black/15 hover:border-black/30 dark:border-white/20 dark:hover:border-white/40"
+                  ? "border-primary bg-primary text-white shadow-sm"
+                  : "border-black/10 bg-surface hover:border-black/25 dark:border-white/15 dark:hover:border-white/30"
               }`}
             >
               <span aria-hidden>{cat.emoji}</span> {cat.nome}
