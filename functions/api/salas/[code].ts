@@ -28,8 +28,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ params, env }) => {
       "SELECT id, nome FROM participantes WHERE sala_id = ? ORDER BY criado_em",
     ).bind(code),
     env.DB.prepare(
-      `SELECT c.id, c.participante_id, p.nome AS participante_nome,
-              c.item_chave, c.item_nome, c.quantidade, c.unidade
+      `SELECT c.id, c.participante_id AS participanteId, p.nome AS participanteNome,
+              c.item_chave AS itemChave, c.item_nome AS itemNome, c.quantidade, c.unidade
        FROM compromissos c
        JOIN participantes p ON p.id = c.participante_id
        WHERE c.sala_id = ?`,

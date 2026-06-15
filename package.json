@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:migrate": "wrangler d1 migrations apply sonochurras-salas --remote",
+    "db:migrate:local": "wrangler d1 migrations apply sonochurras-salas --local",
+    "db:tables": "wrangler d1 execute sonochurras-salas --remote --command \"SELECT name FROM sqlite_master WHERE type='table';\""
   },
   "dependencies": {
     "next": "16.2.9",
