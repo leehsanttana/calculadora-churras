@@ -27,18 +27,6 @@ export default function ItemLinha({ item }: { item: ItemResultado }) {
             💡 {item.dica}
           </p>
         )}
-        {item.marcas && item.marcas.length > 0 && (
-          <p className="mt-1.5 flex flex-wrap gap-1.5">
-            {item.marcas.map((m) => (
-              <span
-                key={m}
-                className="rounded-full bg-black/5 px-2 py-0.5 text-[11px] text-black/60 dark:bg-white/10 dark:text-white/60"
-              >
-                {m}
-              </span>
-            ))}
-          </p>
-        )}
         <ReceitaBotao id={item.id} nome={item.nome} />
       </div>
     </li>

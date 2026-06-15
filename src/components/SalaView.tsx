@@ -3,6 +3,8 @@
 import Link from "next/link";
 import type { EstadoSala, ItemResultado, SessaoSala } from "@/core/tipos";
 import ItemRateio from "@/components/ItemRateio";
+import BotaoVoltar from "@/components/BotaoVoltar";
+import DicasFogo from "@/components/DicasFogo";
 
 interface Props {
   sala: EstadoSala;
@@ -10,6 +12,8 @@ interface Props {
   onEncerrar?: () => void;
   onRemoverCompromisso?: (participanteId: string, itemChave: string) => void;
   onAtualizar: () => void;
+  /** Link para reabrir a calculadora editando esta sala (só anfitrião). */
+  linkEditar?: string;
 }
 
 function SecaoRateio({
@@ -56,7 +60,7 @@ function SecaoRateio({
   );
 }
 
-export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromisso, onAtualizar }: Props) {
+export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromisso, onAtualizar, linkEditar }: Props) {
   const isHost = !!sessao.hostToken;
   const { resultado, compromissos, participantes } = sala;
 
@@ -84,7 +88,7 @@ export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromiss
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-6 py-10">
       <header className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-foreground/60 hover:underline">← Início</Link>
+        <BotaoVoltar fallback="/meus-churrascos" />
         <button
           type="button"
           onClick={copiarLink}
@@ -165,15 +169,45 @@ export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromiss
         onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
 
       {/* Ações do anfitrião */}
-      {isHost && !sala.encerrada && onEncerrar && (
-        <button
-          type="button"
-          onClick={onEncerrar}
-          className="mt-2 rounded-full border border-red-300 px-6 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
-        >
-          Encerrar sala
-        </button>
+      {isHost && !sala.encerrada && (
+        <div className="flex flex-col gap-2">
+          {linkEditar && (
+            <Link
+              href={linkEditar}
+              className="rounded-full border-2 border-foreground bg-surface px-6 py-2.5 text-center text-sm font-semibold shadow-pop-sm transition-colors hover:bg-primary-soft dark:bg-transparent"
+            >
+              ✏️ Editar lista
+            </Link>
+          )}
+          {onEncerrar && (
+            <button
+              type="button"
+              onClick={onEncerrar}
+              className="rounded-full border border-red-300 px-6 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
+            >
+              Encerrar sala
+            </button>
+          )}
+        </div>
       )}
+
+      {/* Dica da churrasqueira — agora dentro da sala (página salva) */}
+      <details className="group rounded-xl border border-black/10 bg-surface p-3 dark:border-white/15">
+        <summary className="flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-amber-700 dark:text-amber-400">
+          <span className="transition group-open:rotate-90">›</span>
+          🔥 Como acender a churrasqueira
+        </summary>
+        <div className="mt-3">
+          <DicasFogo />
+        </div>
+      </details>
+
+      <Link
+        href="/calcular"
+        className="text-center text-sm font-medium text-primary-text hover:underline"
+      >
+        + Nova lista
+      </Link>
 
       <p className="text-center text-xs text-foreground/40">
         Atualiza automaticamente a cada 4s · Sala expira em 7 dias
