@@ -1,6 +1,9 @@
+"use client";
+
 import type { ResultadoChurrasco } from "@/core/tipos";
 import { formatarPesoKg } from "@/core/formato";
 import ResultadoTabs from "@/components/ResultadoTabs";
+import Toast, { useToast } from "@/components/Toast";
 
 interface Props {
   resultado: ResultadoChurrasco;
@@ -14,6 +17,7 @@ interface Props {
   erroCriacao?: string;
   salaCode?: string | null;
   onCopiarLink?: (code: string) => void;
+  onDividir?: (code: string) => void;
   // edição de uma sala existente
   editando?: boolean;
   onSalvarEdicao?: () => void;
@@ -30,15 +34,24 @@ export default function ResultadoView({
   erroCriacao,
   salaCode,
   onCopiarLink,
+  onDividir,
   editando,
   onSalvarEdicao,
 }: Props) {
+  const { estado: toast, mostrar: mostrarToast } = useToast();
+
+  function copiarLink(code: string) {
+    onCopiarLink?.(code);
+    mostrarToast("🔗 Link copiado!");
+  }
+
   const arredondar2 = (n: number) => Math.round(n * 100) / 100;
   const total = resultado.totalCompraKg;
   const porPessoaKg = pessoas > 0 ? arredondar2(total / pessoas) : 0;
   const porContribuinteKg =
     contribuintes > 0 ? arredondar2(total / contribuintes) : 0;
   const arredondado = resultado.totalCompraKg !== resultado.totalCarneKg;
+  const multiplosContribuintes = contribuintes > 1;
 
   return (
     <div className="flex w-full flex-col gap-8">
@@ -82,19 +95,27 @@ export default function ResultadoView({
 
       <ResultadoTabs resultado={resultado} />
 
-      {/* Sala de rateio */}
+      {/* Salvar lista / dividir com a galera */}
       {onCriarSala && (
         <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-surface p-5 dark:border-white/15">
           <div className="flex items-center gap-2">
-            <span className="text-2xl" aria-hidden>{editando ? "✏️" : "🤝"}</span>
+            <span className="text-2xl" aria-hidden>
+              {editando ? "✏️" : salaCode ? "✅" : "📝"}
+            </span>
             <div>
               <p className="font-semibold">
-                {editando ? "Editar lista" : "Sala de rateio"}
+                {editando
+                  ? "Editar lista"
+                  : salaCode
+                    ? "Lista salva!"
+                    : "Salvar lista"}
               </p>
               <p className="text-xs text-foreground/55">
                 {editando
                   ? "As alterações aparecem para todos na sala."
-                  : "Compartilhe com os amigos e veja quem leva o quê."}
+                  : salaCode
+                    ? "Compartilhe para visualização ou divida com a galera."
+                    : "Guarde a sua lista de compras do churrasco."}
               </p>
             </div>
           </div>
@@ -103,24 +124,41 @@ export default function ResultadoView({
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3">
                 <div>
-                  <p className="text-xs text-foreground/60">Código da sala</p>
+                  <p className="text-xs text-foreground/60">Código da lista</p>
                   <p className="font-mono text-lg font-bold tracking-widest text-primary-text">
                     {salaCode}
                   </p>
                 </div>
                 <a
                   href={`/sala?code=${salaCode}`}
-                  className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-pop-sm"
+                  className="rounded-full border border-black/15 px-4 py-2 text-sm font-semibold dark:border-white/20"
                 >
-                  Abrir sala
+                  Abrir lista
                 </a>
               </div>
+
+              {multiplosContribuintes && (
+                <p className="rounded-lg bg-accent/25 px-3 py-2 text-xs font-medium text-foreground/80">
+                  🤝 Vocês são {contribuintes} no rateio — divida com a galera para
+                  cada um marcar o que vai levar.
+                </p>
+              )}
+
+              {onDividir && (
+                <button
+                  type="button"
+                  onClick={() => onDividir(salaCode)}
+                  className="rounded-full border-2 border-foreground bg-primary py-2.5 text-sm font-semibold text-white shadow-pop-sm transition-colors hover:bg-primary-hover"
+                >
+                  Dividir com a galera 🤝
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => onCopiarLink?.(salaCode)}
+                onClick={() => copiarLink(salaCode)}
                 className="rounded-full border border-black/15 py-2.5 text-sm font-medium dark:border-white/20"
               >
-                Copiar link da sala
+                Copiar link (visualização)
               </button>
             </div>
           ) : (
@@ -147,8 +185,8 @@ export default function ResultadoView({
                     ? "Salvando…"
                     : "Salvar alterações ✏️"
                   : criandoSala
-                    ? "Criando sala…"
-                    : "Criar sala de rateio 🤝"}
+                    ? "Salvando…"
+                    : "Salvar lista 📝"}
               </button>
             </div>
           )}
@@ -159,6 +197,8 @@ export default function ResultadoView({
         Valores médios de referência em quantidade — ajuste conforme o apetite
         da galera.
       </p>
+
+      <Toast estado={toast} />
     </div>
   );
 }

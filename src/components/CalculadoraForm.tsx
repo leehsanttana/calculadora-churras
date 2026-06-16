@@ -181,18 +181,6 @@ export default function CalculadoraForm() {
       },
     },
     {
-      id: "sobremesa",
-      nome: "Sobremesas",
-      emoji: "🍨",
-      itens: itensSimples(ITENS_SOBREMESA),
-      selecionados: sobremesas,
-      bloqueados: bloqueados.sobremesas,
-      onToggle: (id) => {
-        if (bloqueados.sobremesas.has(id)) return;
-        toggleEm(setSobremesas, id);
-      },
-    },
-    {
       id: "bebida",
       nome: "Bebidas",
       emoji: "🥤",
@@ -202,6 +190,18 @@ export default function CalculadoraForm() {
       onToggle: (id) => {
         if (bloqueados.bebidas.has(id)) return;
         toggleEm(setBebidas, id);
+      },
+    },
+    {
+      id: "sobremesa",
+      nome: "Sobremesas",
+      emoji: "🍨",
+      itens: itensSimples(ITENS_SOBREMESA),
+      selecionados: sobremesas,
+      bloqueados: bloqueados.sobremesas,
+      onToggle: (id) => {
+        if (bloqueados.sobremesas.has(id)) return;
+        toggleEm(setSobremesas, id);
       },
     },
   ];

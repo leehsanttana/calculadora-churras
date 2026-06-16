@@ -6,9 +6,16 @@ interface Env {
 
 const SETE_DIAS_MS = 7 * 24 * 60 * 60 * 1000;
 
-// POST /api/salas — cria uma sala e retorna o código + hostToken
+// POST /api/salas — cria uma lista e retorna o código + hostToken.
+// Por padrão a lista é PESSOAL (somente leitura para quem abre o link).
+// `colaborativa: true` já cria como sala de rateio (editável por participantes).
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
-  let body: { nome?: string; entrada?: unknown; resultado?: unknown };
+  let body: {
+    nome?: string;
+    entrada?: unknown;
+    resultado?: unknown;
+    colaborativa?: boolean;
+  };
   try {
     body = await request.json();
   } catch {
@@ -21,6 +28,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   const agora = Date.now();
   const hostToken = uuid();
+  const colaborativa = body.colaborativa ? 1 : 0;
 
   // Garante código único com até 5 tentativas
   let code = "";
@@ -37,8 +45,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   const hostId = uuid();
   await env.DB.batch([
     env.DB.prepare(
-      `INSERT INTO salas (id, nome, entrada_json, resultado_json, host_token, criada_em, expira_em)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO salas (id, nome, entrada_json, resultado_json, host_token, criada_em, expira_em, colaborativa)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(
       code,
       body.nome,
@@ -47,6 +55,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       hostToken,
       agora,
       agora + SETE_DIAS_MS,
+      colaborativa,
     ),
     env.DB.prepare(
       "INSERT INTO participantes (id, sala_id, nome, criado_em) VALUES (?, ?, ?, ?)",

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { SalaSalva } from "@/storage/salas";
 import { listarSalas, removerSala } from "@/storage/salas";
+import { entradaParaQuery } from "@/core/serial";
+import MenuAcoes from "@/components/MenuAcoes";
 
 export default function MeusChurrascosPage() {
   const [lista, setLista] = useState<SalaSalva[]>([]);
@@ -15,9 +17,11 @@ export default function MeusChurrascosPage() {
   }, []);
 
   async function excluir(sala: SalaSalva) {
-    const ok = window.confirm(
-      `Excluir "${sala.nome}"? A sala será encerrada para todos.`,
-    );
+    const aviso =
+      sala.colaborativa === false
+        ? `Excluir "${sala.nome}"?`
+        : `Excluir "${sala.nome}"? A sala será encerrada para todos.`;
+    const ok = window.confirm(aviso);
     if (!ok) return;
     // Encerra no servidor (best-effort) e remove do índice local.
     try {
@@ -68,8 +72,19 @@ export default function MeusChurrascosPage() {
               key={s.code}
               className="flex items-center justify-between gap-3 rounded-xl border border-black/10 bg-surface p-4 dark:border-white/15"
             >
-              <Link href={`/sala?code=${s.code}`} className="flex flex-1 flex-col">
-                <span className="font-medium">{s.nome}</span>
+              <Link href={`/sala?code=${s.code}`} className="flex flex-1 flex-col gap-1">
+                <span className="flex items-center gap-2">
+                  <span className="font-medium">{s.nome}</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                      s.colaborativa === false
+                        ? "bg-black/8 text-foreground/60 dark:bg-white/10"
+                        : "bg-primary-soft text-primary-text"
+                    }`}
+                  >
+                    {s.colaborativa === false ? "Pessoal" : "Rateio"}
+                  </span>
+                </span>
                 <span className="text-xs text-black/55 dark:text-white/55">
                   {s.entrada.adultos} adulto(s)
                   {s.entrada.criancas > 0 && ` + ${s.entrada.criancas} criança(s)`}
@@ -77,14 +92,22 @@ export default function MeusChurrascosPage() {
                   <span className="font-mono tracking-widest">{s.code}</span>
                 </span>
               </Link>
-              <button
-                type="button"
-                onClick={() => excluir(s)}
-                aria-label={`Excluir ${s.nome}`}
-                className="rounded-lg px-2 py-1 text-sm text-black/40 transition-colors hover:bg-primary-soft hover:text-primary-text dark:text-white/40"
-              >
-                Excluir
-              </button>
+              <MenuAcoes
+                rotulo={`Ações de ${s.nome}`}
+                acoes={[
+                  {
+                    label: "Editar",
+                    icone: "✏️",
+                    href: `/calcular?${entradaParaQuery(s.entrada)}&sala=${s.code}`,
+                  },
+                  {
+                    label: "Excluir",
+                    icone: "🗑️",
+                    perigo: true,
+                    onClick: () => excluir(s),
+                  },
+                ]}
+              />
             </li>
           ))}
         </ul>

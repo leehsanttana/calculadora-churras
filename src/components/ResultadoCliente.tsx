@@ -74,6 +74,7 @@ export default function ResultadoCliente() {
         entrada,
         hostToken,
         participanteId: hostId,
+        colaborativa: false, // nasce como lista pessoal
       });
       setSalaCode(code);
     } catch {
@@ -117,6 +118,26 @@ export default function ResultadoCliente() {
   function copiarLink(code: string) {
     const url = `${window.location.origin}/sala?code=${code}`;
     navigator.clipboard.writeText(url).catch(() => {});
+  }
+
+  // Transforma a lista pessoal recém-salva em sala de rateio e abre a sala.
+  async function dividirComAGalera(code: string) {
+    const s = buscarSala(code);
+    if (!s) return;
+    try {
+      const res = await fetch(`/api/salas/${code}/dividir`, {
+        method: "POST",
+        headers: { "X-Host-Token": s.hostToken },
+      });
+      if (!res.ok) {
+        setErro((await lerErro(res)) ?? "Erro ao dividir a lista.");
+        return;
+      }
+      salvarSala({ ...s, colaborativa: true });
+      router.push(`/sala?code=${code}`);
+    } catch {
+      setErro("Sem conexão com o servidor.");
+    }
   }
 
   if (semCortes) {
@@ -174,6 +195,7 @@ export default function ResultadoCliente() {
         erroCriacao={erro}
         salaCode={salaCode}
         onCopiarLink={copiarLink}
+        onDividir={dividirComAGalera}
         editando={!!editandoCode}
         onSalvarEdicao={salvarEdicao}
       />

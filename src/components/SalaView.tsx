@@ -2,17 +2,27 @@
 
 import Link from "next/link";
 import type { EstadoSala, ItemResultado, SessaoSala } from "@/core/tipos";
+import { formatarPesoKg } from "@/core/formato";
 import ItemRateio from "@/components/ItemRateio";
+import ResultadoTabs from "@/components/ResultadoTabs";
 import BotaoVoltar from "@/components/BotaoVoltar";
 import DicasFogo from "@/components/DicasFogo";
+import Toast, { useToast } from "@/components/Toast";
+import MenuAcoes, { type AcaoMenu } from "@/components/MenuAcoes";
 
 interface Props {
   sala: EstadoSala;
-  sessao: SessaoSala;
-  onEncerrar?: () => void;
+  /** Sessão do dispositivo. Pode ser nula para quem só visualiza uma lista pessoal. */
+  sessao: SessaoSala | null;
+  /** Anfitrião exclui a lista/sala (encerra no servidor e some daqui). */
+  onExcluir?: () => void;
   onRemoverCompromisso?: (participanteId: string, itemChave: string) => void;
   onAtualizar: () => void;
-  /** Link para reabrir a calculadora editando esta sala (só anfitrião). */
+  /** Anfitrião transforma a lista pessoal em sala de rateio. */
+  onDividir?: () => void;
+  /** Destaca o "dividir com a galera" (ex.: há mais de 1 contribuinte). */
+  sugerirDividir?: boolean;
+  /** Link para reabrir a calculadora editando esta lista (só anfitrião). */
   linkEditar?: string;
 }
 
@@ -60,8 +70,17 @@ function SecaoRateio({
   );
 }
 
-export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromisso, onAtualizar, linkEditar }: Props) {
-  const isHost = !!sessao.hostToken;
+export default function SalaView({
+  sala,
+  sessao,
+  onExcluir,
+  onRemoverCompromisso,
+  onAtualizar,
+  onDividir,
+  sugerirDividir,
+  linkEditar,
+}: Props) {
+  const isHost = !!sessao?.hostToken;
   const { resultado, compromissos, participantes } = sala;
   // Salas antigas (criadas antes do split) podem não ter `sobremesas`.
   const sobremesas = resultado.sobremesas ?? [];
@@ -83,29 +102,53 @@ export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromiss
     return comprometido >= item.quantidade;
   }).length;
 
+  const { estado: toast, mostrar: mostrarToast } = useToast();
+
   function copiarLink() {
     const url = `${window.location.origin}/sala?code=${sala.code}`;
-    navigator.clipboard.writeText(url).catch(() => {});
+    navigator.clipboard
+      .writeText(url)
+      .then(() => mostrarToast("🔗 Link copiado!"))
+      .catch(() => {});
   }
+
+  const colaborativa = sala.colaborativa;
+  // Só quem entrou (tem sessão) participa do rateio; os demais apenas visualizam.
+  const ehParticipante = !!sessao;
+
+  // Ações do anfitrião (3 pontinhos, ao lado do compartilhar).
+  const acoesLista: AcaoMenu[] = [];
+  if (linkEditar) {
+    acoesLista.push({ label: "Editar lista", icone: "✏️", href: linkEditar });
+  }
+  if (onExcluir) {
+    acoesLista.push({ label: "Excluir", icone: "🗑️", perigo: true, onClick: onExcluir });
+  }
+  const mostrarMenu = isHost && !sala.encerrada && acoesLista.length > 0;
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-6 py-10">
       <header className="flex items-center justify-between">
         <BotaoVoltar fallback="/meus-churrascos" />
-        <button
-          type="button"
-          onClick={copiarLink}
-          className="text-sm font-medium text-primary-text hover:underline"
-        >
-          Copiar link
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={copiarLink}
+            className="text-sm font-medium text-primary-text hover:underline"
+          >
+            Copiar link
+          </button>
+          {mostrarMenu && <MenuAcoes acoes={acoesLista} rotulo="Ações da lista" />}
+        </div>
       </header>
 
-      {/* Cabeçalho da sala */}
+      {/* Cabeçalho da lista/sala */}
       <div className="relative overflow-hidden rounded-2xl border-4 border-accent bg-primary p-5 text-white shadow-pop">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-xs uppercase tracking-wide opacity-80">Sala de rateio</p>
+            <p className="text-xs uppercase tracking-wide opacity-80">
+              {colaborativa ? "Sala de rateio" : "Lista do churrasco"}
+            </p>
             <h1 className="font-heading text-3xl uppercase leading-tight">{sala.nome}</h1>
             <p className="mt-1 text-sm opacity-80">
               Código: <span className="font-mono font-bold tracking-widest">{sala.code}</span>
@@ -118,34 +161,42 @@ export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromiss
           )}
         </div>
 
-        {/* Barra de progresso */}
-        <div className="mt-4">
-          <div className="flex justify-between text-xs opacity-80">
-            <span>{itensCobertos} de {totalItens} itens cobertos</span>
-            <span>{participantes.length} participante(s)</span>
+        {colaborativa ? (
+          /* Barra de progresso do rateio */
+          <div className="mt-4">
+            <div className="flex justify-between text-xs opacity-80">
+              <span>{itensCobertos} de {totalItens} itens cobertos</span>
+              <span>{participantes.length} participante(s)</span>
+            </div>
+            <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-white/20">
+              <div
+                className="h-full rounded-full bg-accent transition-all"
+                style={{ width: totalItens > 0 ? `${(itensCobertos / totalItens) * 100}%` : "0%" }}
+              />
+            </div>
           </div>
-          <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-white/20">
-            <div
-              className="h-full rounded-full bg-accent transition-all"
-              style={{ width: totalItens > 0 ? `${(itensCobertos / totalItens) * 100}%` : "0%" }}
-            />
-          </div>
-        </div>
+        ) : (
+          resultado.totalCompraKg > 0 && (
+            <p className="mt-4 border-t border-white/20 pt-3 text-sm opacity-90">
+              🥩 Total: <span className="font-semibold">{formatarPesoKg(resultado.totalCompraKg)}</span> de carne
+            </p>
+          )
+        )}
       </div>
 
-      {/* Participantes */}
-      {participantes.length > 0 && (
+      {/* Participantes (só no modo colaborativo) */}
+      {colaborativa && participantes.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {participantes.map((p) => (
             <span
               key={p.id}
               className={`rounded-full px-3 py-1 text-xs font-medium ${
-                p.id === sessao.participanteId
+                p.id === sessao?.participanteId
                   ? "bg-primary text-white"
                   : "bg-black/8 dark:bg-white/10"
               }`}
             >
-              {p.nome} {p.id === sessao.participanteId && "(você)"}
+              {p.nome} {p.id === sessao?.participanteId && "(você)"}
             </span>
           ))}
         </div>
@@ -157,43 +208,55 @@ export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromiss
         </div>
       )}
 
-      {/* Listas de itens */}
-      <SecaoRateio titulo="Carnes" emoji="🥩" itens={resultado.carnes}
-        sala={sala} sessao={sessao} isHost={isHost}
-        onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
-      <SecaoRateio titulo="Extras da grelha" emoji="🧀" itens={resultado.extras}
-        sala={sala} sessao={sessao} isHost={isHost}
-        onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
-      <SecaoRateio titulo="Acompanhamentos" emoji="🥗" itens={resultado.acompanhamentos}
-        sala={sala} sessao={sessao} isHost={isHost}
-        onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
-      <SecaoRateio titulo="Sobremesas" emoji="🍨" itens={sobremesas}
-        sala={sala} sessao={sessao} isHost={isHost}
-        onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
-      <SecaoRateio titulo="Bebidas" emoji="🥤" itens={resultado.bebidas}
-        sala={sala} sessao={sessao} isHost={isHost}
-        onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
+      {/* Aviso de somente leitura: lista pessoal compartilhada ou sala já cheia */}
+      {!ehParticipante && (
+        <div className="rounded-xl border border-black/10 bg-surface px-4 py-3 text-sm text-foreground/70 dark:border-white/15">
+          {colaborativa
+            ? "🙌 Esta sala já atingiu o número de pessoas no rateio — você pode visualizar a lista."
+            : "👀 Você está vendo uma lista compartilhada — somente para visualização."}
+        </div>
+      )}
 
-      {/* Ações do anfitrião */}
-      {isHost && !sala.encerrada && (
+      {colaborativa && ehParticipante ? (
+        <>
+          {/* Listas de itens — modo rateio (cada um marca o que leva) */}
+          <SecaoRateio titulo="Carnes" emoji="🥩" itens={resultado.carnes}
+            sala={sala} sessao={sessao!} isHost={isHost}
+            onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
+          <SecaoRateio titulo="Extras da grelha" emoji="🧀" itens={resultado.extras}
+            sala={sala} sessao={sessao!} isHost={isHost}
+            onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
+          <SecaoRateio titulo="Acompanhamentos" emoji="🥗" itens={resultado.acompanhamentos}
+            sala={sala} sessao={sessao!} isHost={isHost}
+            onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
+          <SecaoRateio titulo="Bebidas" emoji="🥤" itens={resultado.bebidas}
+            sala={sala} sessao={sessao!} isHost={isHost}
+            onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
+          <SecaoRateio titulo="Sobremesas" emoji="🍨" itens={sobremesas}
+            sala={sala} sessao={sessao!} isHost={isHost}
+            onAtualizar={onAtualizar} onRemoverCompromisso={onRemoverCompromisso} />
+        </>
+      ) : (
+        /* Lista pessoal — visualização (mesmas abas do resultado) */
+        <ResultadoTabs resultado={resultado} />
+      )}
+
+      {/* Lista pessoal: oferecer transformar em sala de rateio (CTA principal) */}
+      {isHost && !sala.encerrada && !colaborativa && onDividir && (
         <div className="flex flex-col gap-2">
-          {linkEditar && (
-            <Link
-              href={linkEditar}
-              className="rounded-full border-2 border-foreground bg-surface px-6 py-2.5 text-center text-sm font-semibold shadow-pop-sm transition-colors hover:bg-primary-soft dark:bg-transparent"
-            >
-              ✏️ Editar lista
-            </Link>
+          {sugerirDividir && (
+            <p className="rounded-lg bg-accent/25 px-3 py-2 text-xs font-medium text-foreground/80">
+              🤝 Mais de uma pessoa no rateio? Divida com a galera para cada um
+              marcar o que vai levar.
+            </p>
           )}
-          {onEncerrar && (
-            <button
-              type="button"
-              onClick={onEncerrar}
-              className="rounded-full border border-red-300 px-6 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
-            >
-              Encerrar sala
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onDividir}
+            className="rounded-full border-2 border-foreground bg-primary px-6 py-2.5 text-center text-sm font-semibold text-white shadow-pop-sm transition-colors hover:bg-primary-hover"
+          >
+            Dividir com a galera 🤝
+          </button>
         </div>
       )}
 
@@ -208,16 +271,30 @@ export default function SalaView({ sala, sessao, onEncerrar, onRemoverCompromiss
         </div>
       </details>
 
-      <Link
-        href="/calcular"
-        className="text-center text-sm font-medium text-primary-text hover:underline"
-      >
-        + Nova lista
-      </Link>
+      {/* Quem não é o dono (visitante ou participante): convite forte a criar a sua. */}
+      {!isHost ? (
+        <Link
+          href="/calcular"
+          className="rounded-full border-2 border-foreground bg-primary px-8 py-3 text-center font-semibold text-white shadow-pop transition-transform hover:-translate-y-0.5"
+        >
+          Criar minha própria lista 🔥
+        </Link>
+      ) : (
+        <Link
+          href="/calcular"
+          className="text-center text-sm font-medium text-primary-text hover:underline"
+        >
+          + Nova lista
+        </Link>
+      )}
 
       <p className="text-center text-xs text-foreground/40">
-        Atualiza automaticamente a cada 4s · Sala expira em 7 dias
+        {colaborativa
+          ? "Atualiza automaticamente a cada 4s · Sala expira em 7 dias"
+          : "Lista expira em 7 dias"}
       </p>
+
+      <Toast estado={toast} />
     </main>
   );
 }

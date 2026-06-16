@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "preview": "next build && wrangler pages dev ./out",
     "lint": "eslint",
     "test": "vitest run",
     "db:migrate": "wrangler d1 migrations apply sonochurras-salas --remote",

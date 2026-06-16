@@ -38,6 +38,19 @@ function arredondar(valor: number, casas = 1): number {
 }
 
 /**
+ * Arredonda um peso (kg) para valores "cheios", fáceis de comprar:
+ * abaixo de 1 kg, múltiplos de 200 g (200 g, 400 g, 800 g…);
+ * a partir de 1 kg, múltiplos de 0,5 kg (1 kg, 1,5 kg, 2 kg…).
+ * Nunca devolve valores quebrados como 820 g ou 1,24 kg.
+ */
+function arredondarPesoBonito(kg: number): number {
+  if (kg <= 0) return 0;
+  const passo = kg < 1 ? 0.2 : 0.5;
+  const arredondado = Math.max(passo, Math.round(kg / passo) * passo);
+  return Math.round(arredondado * 100) / 100;
+}
+
+/**
  * Motor de cálculo do churrasco. Função pura: dada a entrada do usuário,
  * devolve as quantidades recomendadas (carnes, acompanhamentos e bebidas).
  * Nenhum valor em dinheiro — só quantidade.
@@ -99,7 +112,7 @@ export function calcularChurrasco(
         ? 0
         : emPeca
           ? Math.ceil(kgBruto - 1e-9)
-          : arredondar(kgBruto, 2);
+          : arredondarPesoBonito(kgBruto);
     return {
       id: corte.id,
       nome: corte.nome,
@@ -119,16 +132,23 @@ export function calcularChurrasco(
   );
 
   // ── Extras da grelha (pão de alho, queijo coalho) ─────────────────
-  const extras: ItemResultado[] = cortesExtra.map((corte) => ({
-    id: corte.id,
-    nome: corte.nome,
-    quantidade: Math.ceil((corte.porPessoa ?? 0) * pessoasTotal),
-    unidade: "un",
-    categoria: corte.categoria,
-    dica: corte.dica,
-    emoji: corte.emoji,
-    imagem: corte.imagem,
-  }));
+  // Pão de alho e queijo coalho são comprados em PACOTE (não unidade solta):
+  // calcula as unidades por pessoa e converte em pacotes cheios.
+  const extras: ItemResultado[] = cortesExtra.map((corte) => {
+    const unidades = Math.ceil((corte.porPessoa ?? 0) * pessoasTotal);
+    const porPacote = corte.unidadesPorPacote ?? 0;
+    const emPacote = porPacote > 0;
+    return {
+      id: corte.id,
+      nome: corte.nome,
+      quantidade: emPacote ? Math.ceil(unidades / porPacote) : unidades,
+      unidade: emPacote ? "pacote" : "un",
+      categoria: corte.categoria,
+      dica: corte.dica,
+      emoji: corte.emoji,
+      imagem: corte.imagem,
+    };
+  });
 
   // ── Acompanhamentos e sobremesas (só os selecionados) ─────────────
   const acompanhamentos: ItemResultado[] = [];
@@ -141,6 +161,22 @@ export function calcularChurrasco(
         : acompSelecionados.has(item.id);
       if (!selecionado) continue;
 
+      // Acompanhamentos são apenas marcados como "incluídos" — sem gramatura.
+      // Quem decide servir, serve à vontade; no rateio é só "quem leva".
+      if (!ehSobremesa) {
+        acompanhamentos.push({
+          id: item.id,
+          nome: item.nome,
+          quantidade: 1,
+          unidade: "un",
+          semQuantidade: true,
+          dica: item.dica,
+          emoji: item.emoji,
+        });
+        continue;
+      }
+
+      // Sobremesas mantêm a quantidade, mas em valores cheios.
       const linha: ItemResultado =
         item.unidadesPorPessoa != null
           ? {
@@ -154,16 +190,15 @@ export function calcularChurrasco(
           : {
               id: item.id,
               nome: item.nome,
-              quantidade: arredondar(
+              quantidade: arredondarPesoBonito(
                 ((item.gramasPorPessoa ?? 0) * pessoasTotal) / 1000,
-                2,
               ),
               unidade: "kg",
               dica: item.dica,
               emoji: item.emoji,
             };
 
-      (ehSobremesa ? sobremesas : acompanhamentos).push(linha);
+      sobremesas.push(linha);
     }
   }
 

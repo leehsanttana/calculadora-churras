@@ -82,7 +82,7 @@ describe("calcularChurrasco — carnes", () => {
     expect(r.totalCompraKg).toBe(0);
   });
 
-  it("extras da grelha são por pessoa (un) e fora do rateio de carne", () => {
+  it("extras da grelha são em pacote e fora do rateio de carne", () => {
     const r = calcularChurrasco({
       ...base,
       adultos: 10,
@@ -90,8 +90,9 @@ describe("calcularChurrasco — carnes", () => {
       cortes: ["pao-de-alho", "picanha"],
     });
     const pao = r.extras.find((e) => e.id === "pao-de-alho");
-    expect(pao?.quantidade).toBe(15); // ceil(1,5 × 10)
-    expect(pao?.unidade).toBe("un");
+    // ceil(1,5 × 10) = 15 unidades ÷ 5 por pacote = 3 pacotes
+    expect(pao?.quantidade).toBe(3);
+    expect(pao?.unidade).toBe("pacote");
     // não contamina as carnes nem o rateio
     expect(r.carnes.some((c) => c.id === "pao-de-alho")).toBe(false);
     expect(r.carnes).toHaveLength(1); // só a picanha
@@ -108,16 +109,17 @@ describe("calcularChurrasco — carnes", () => {
   });
 
   it("divide o total entre categorias e, dentro delas, entre os cortes", () => {
-    // Usa aves (sem arredondamento) para checar a divisão exata.
-    // 1 categoria (aves), 2 cortes → metade para cada
+    // Usa aves (granularidade fina) para checar a divisão.
+    // 1 categoria (aves), 2 cortes → metade para cada, em valores cheios.
     const umaCategoria = calcularChurrasco({
       ...base,
       cortes: ["coxa-sobrecoxa", "asa-frango"],
     });
     expect(umaCategoria.carnes).toHaveLength(2);
-    expect(umaCategoria.carnes[0].quantidade).toBeCloseTo(
-      umaCategoria.totalCarneKg / 2,
-      2,
+    // 4,5kg / 2 = 2,25kg → arredondado para 2,5kg (passo de 0,5kg)
+    expect(umaCategoria.carnes[0].quantidade).toBe(2.5);
+    expect(umaCategoria.carnes[1].quantidade).toBe(
+      umaCategoria.carnes[0].quantidade,
     );
 
     // 2 categorias (aves + suína), 1 corte cada → mesma quantidade.

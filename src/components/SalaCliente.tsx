@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { EstadoSala, SessaoSala } from "@/core/tipos";
 import { entradaParaQuery } from "@/core/serial";
-import { buscarSala as buscarSalaLocal } from "@/storage/salas";
+import {
+  buscarSala as buscarSalaLocal,
+  salvarSala as salvarSalaLocal,
+  removerSala as removerSalaLocal,
+} from "@/storage/salas";
 import SalaView from "@/components/SalaView";
 
 const POLLING_MS = 4000;
@@ -28,6 +32,7 @@ function salvarSessao(code: string, sessao: SessaoSala) {
 }
 
 export default function SalaCliente() {
+  const router = useRouter();
   const params = useSearchParams();
   const code = (params.get("code") ?? "").toUpperCase();
 
@@ -95,14 +100,30 @@ export default function SalaCliente() {
     }
   }
 
-  async function encerrarSala() {
+  async function excluirSala() {
     if (!sessao?.hostToken || !sala) return;
-    const confirma = window.confirm("Encerrar a sala? Os convidados não poderão mais editar.");
-    if (!confirma) return;
-    await fetch(`/api/salas/${code}`, {
-      method: "DELETE",
+    const aviso = sala.colaborativa
+      ? "Excluir esta sala? Ela será encerrada para todos."
+      : "Excluir esta lista?";
+    if (!window.confirm(aviso)) return;
+    try {
+      await fetch(`/api/salas/${code}`, {
+        method: "DELETE",
+        headers: { "X-Host-Token": sessao.hostToken },
+      });
+    } catch {}
+    removerSalaLocal(code);
+    router.push("/meus-churrascos");
+  }
+
+  async function dividir() {
+    if (!sessao?.hostToken) return;
+    await fetch(`/api/salas/${code}/dividir`, {
+      method: "POST",
       headers: { "X-Host-Token": sessao.hostToken },
     });
+    const local = buscarSalaLocal(code);
+    if (local) salvarSalaLocal({ ...local, colaborativa: true });
     await buscarSala();
   }
 
@@ -152,7 +173,36 @@ export default function SalaCliente() {
     );
   }
 
-  // Participante ainda não entrou na sala
+  // Quem é dono (tem hostToken salvo neste dispositivo) e link de edição.
+  const salaLocal = buscarSalaLocal(code);
+  const isHost = !!sessao?.hostToken;
+  const linkEditar =
+    isHost && salaLocal
+      ? `/calcular?${entradaParaQuery(salaLocal.entrada)}&sala=${code}`
+      : undefined;
+
+  // Lista pessoal: somente leitura. O anfitrião ganha as ações (editar/dividir).
+  if (!sala.colaborativa) {
+    return (
+      <SalaView
+        sala={sala}
+        sessao={sessao}
+        onAtualizar={buscarSala}
+        onDividir={isHost ? dividir : undefined}
+        onExcluir={isHost ? excluirSala : undefined}
+        sugerirDividir={(salaLocal?.entrada.contribuintes ?? 1) > 1}
+        linkEditar={linkEditar}
+      />
+    );
+  }
+
+  // Sala de rateio cheia (atingiu o nº de contribuintes): novos visitantes só
+  // conseguem visualizar a lista — não entram no rateio.
+  if (!sessao && sala.participantes.length >= sala.maxParticipantes) {
+    return <SalaView sala={sala} sessao={null} onAtualizar={buscarSala} />;
+  }
+
+  // Sala de rateio com vaga: exige entrar (informar o nome) antes dos controles.
   if (!sessao) {
     return (
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-6 py-10">
@@ -208,19 +258,12 @@ export default function SalaCliente() {
     );
   }
 
-  // Link de edição (só faz sentido para o anfitrião, que tem a entrada salva).
-  const salaLocal = buscarSalaLocal(code);
-  const linkEditar =
-    sessao.hostToken && salaLocal
-      ? `/calcular?${entradaParaQuery(salaLocal.entrada)}&sala=${code}`
-      : undefined;
-
   return (
     <SalaView
       sala={sala}
       sessao={sessao}
-      onEncerrar={sessao.hostToken ? encerrarSala : undefined}
-      onRemoverCompromisso={sessao.hostToken ? removerCompromisso : undefined}
+      onExcluir={isHost ? excluirSala : undefined}
+      onRemoverCompromisso={isHost ? removerCompromisso : undefined}
       onAtualizar={buscarSala}
       linkEditar={linkEditar}
     />

@@ -232,6 +232,8 @@ export const CORTES: Corte[] = [
     categoria: "extras",
     perfisRecomendados: ["simples", "intermediario", "sofisticado"],
     porPessoa: 1.5,
+    // Vendido em pacote (geralmente 5 unidades) — o resultado vem em pacotes.
+    unidadesPorPacote: 5,
     emoji: "🥖",
     dica: "Asse nas bordas da grelha, fora do fogo direto.",
   },
@@ -241,6 +243,8 @@ export const CORTES: Corte[] = [
     categoria: "extras",
     perfisRecomendados: ["simples", "intermediario", "sofisticado"],
     porPessoa: 1,
+    // Também vendido em pacote (espetos) — o resultado vem em pacotes.
+    unidadesPorPacote: 5,
     emoji: "🧀",
     dica: "Doure rápido na brasa; sirva ainda quente.",
   },

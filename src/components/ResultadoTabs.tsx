@@ -74,11 +74,11 @@ function montarTabs(resultado: ResultadoChurrasco): Tab[] {
   if (resultado.acompanhamentos.length > 0) {
     tabs.push({ id: "acompanhamento", nome: "Acompanhamentos", emoji: "🥗", itens: resultado.acompanhamentos });
   }
-  if ((resultado.sobremesas ?? []).length > 0) {
-    tabs.push({ id: "sobremesa", nome: "Sobremesas", emoji: "🍨", itens: resultado.sobremesas });
-  }
   if (resultado.bebidas.length > 0) {
     tabs.push({ id: "bebida", nome: "Bebidas", emoji: "🥤", itens: resultado.bebidas });
+  }
+  if ((resultado.sobremesas ?? []).length > 0) {
+    tabs.push({ id: "sobremesa", nome: "Sobremesas", emoji: "🍨", itens: resultado.sobremesas });
   }
 
   return tabs;

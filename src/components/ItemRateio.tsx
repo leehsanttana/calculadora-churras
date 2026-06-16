@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CompromissoSala, ItemResultado, SessaoSala } from "@/core/tipos";
-import { formatarQuantidade } from "@/core/formato";
+import { formatarQuantidade, formatarValorUnidade } from "@/core/formato";
 import CorteImagem from "@/components/CorteImagem";
 
 interface Props {
@@ -58,7 +58,8 @@ export default function ItemRateio({
   }, [meuCompromisso?.quantidade]);
 
   function onChange(valor: number) {
-    const v = Math.max(0, valor);
+    // Arredonda para evitar erros de ponto flutuante nos passos de 0,2 kg.
+    const v = Math.max(0, Math.round(valor * 100) / 100);
     setQtd(v);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => salvar(v), 600);
@@ -84,7 +85,10 @@ export default function ItemRateio({
     }
   }
 
-  const step = item.unidade === "kg" ? 0.5 : 1;
+  // Em kg: abaixo de 1 kg o valor aparece em gramas, então soma de 200 em 200 g;
+  // a partir de 1 kg, de meio em meio quilo. Demais unidades: de 1 em 1.
+  const step =
+    item.unidade === "kg" ? (item.quantidade < 1 ? 0.2 : 0.5) : 1;
 
   return (
     <li className={`flex flex-col gap-3 rounded-xl border p-3 transition ${
@@ -98,37 +102,62 @@ export default function ItemRateio({
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="text-sm font-semibold">{item.nome}</span>
           <span className="text-xs text-foreground/55">
-            Total: {formatarQuantidade(item)}
-            {coberto && <span className="ml-1 font-medium text-primary-text">✓ coberto</span>}
-            {!coberto && comprometido > 0 && (
-              <span className="ml-1 text-amber-600 dark:text-amber-400">
-                · falta {restante.toFixed(item.unidade === "kg" ? 1 : 0)} {item.unidade}
-              </span>
+            {item.semQuantidade ? (
+              coberto ? (
+                <span className="font-medium text-primary-text">✓ alguém vai levar</span>
+              ) : (
+                "Quem vai levar?"
+              )
+            ) : (
+              <>
+                Total: {formatarQuantidade(item)}
+                {coberto && <span className="ml-1 font-medium text-primary-text">✓ coberto</span>}
+                {!coberto && comprometido > 0 && (
+                  <span className="ml-1 text-amber-600 dark:text-amber-400">
+                    · falta {restante.toFixed(item.unidade === "kg" ? 1 : 0)} {item.unidade}
+                  </span>
+                )}
+              </>
             )}
           </span>
         </div>
 
         {/* Input do participante */}
-        {!encerrada && (
-          <div className="flex shrink-0 items-center gap-1.5">
+        {!encerrada &&
+          (item.semQuantidade ? (
+            // Acompanhamento: só um toggle "eu levo" (sem gramatura).
             <button
               type="button"
-              aria-label="Diminuir"
-              onClick={() => onChange(Math.max(0, qtd - step))}
-              className="flex size-8 items-center justify-center rounded-full border border-black/15 text-lg leading-none dark:border-white/20"
-            >−</button>
-            <span className="w-12 text-center text-sm font-semibold tabular-nums">
-              {qtd > 0 ? `${qtd}${item.unidade}` : "—"}
-            </span>
-            <button
-              type="button"
-              aria-label="Aumentar"
-              onClick={() => onChange(qtd + step)}
-              className="flex size-8 items-center justify-center rounded-full border border-black/15 text-lg leading-none dark:border-white/20"
-            >+</button>
-            {salvando && <span className="ml-1 text-xs text-foreground/40">…</span>}
-          </div>
-        )}
+              onClick={() => onChange(qtd >= 1 ? 0 : 1)}
+              aria-pressed={qtd >= 1}
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                qtd >= 1
+                  ? "border-primary bg-primary text-white"
+                  : "border-black/15 dark:border-white/20"
+              }`}
+            >
+              {qtd >= 1 ? "✓ Vou levar" : "Eu levo"}
+            </button>
+          ) : (
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                aria-label="Diminuir"
+                onClick={() => onChange(Math.max(0, qtd - step))}
+                className="flex size-8 items-center justify-center rounded-full border border-black/15 text-lg leading-none dark:border-white/20"
+              >−</button>
+              <span className="w-16 text-center text-sm font-semibold tabular-nums">
+                {qtd > 0 ? formatarValorUnidade(qtd, item.unidade) : "—"}
+              </span>
+              <button
+                type="button"
+                aria-label="Aumentar"
+                onClick={() => onChange(qtd + step)}
+                className="flex size-8 items-center justify-center rounded-full border border-black/15 text-lg leading-none dark:border-white/20"
+              >+</button>
+              {salvando && <span className="ml-1 text-xs text-foreground/40">…</span>}
+            </div>
+          ))}
       </div>
 
       {/* Quem está levando */}
@@ -145,7 +174,8 @@ export default function ItemRateio({
                     : "bg-black/8 dark:bg-white/10"
                 }`}
               >
-                {c.participanteNome} · {c.quantidade}{c.unidade}
+                {c.participanteNome}
+                {!item.semQuantidade && ` · ${formatarValorUnidade(c.quantidade, c.unidade)}`}
                 {isHost && c.participanteId !== sessao.participanteId && onRemoverCompromisso && (
                   <button
                     type="button"

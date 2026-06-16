@@ -9,7 +9,8 @@ function secao(titulo: string, itens: ItemResultado[]): string[] {
   if (itens.length === 0) return [];
   const linhas = ["", `*${titulo}*`];
   for (const item of itens) {
-    linhas.push(`   • ${item.nome} — ${formatarQuantidade(item)}`);
+    const valor = item.semQuantidade ? "" : ` — ${formatarQuantidade(item)}`;
+    linhas.push(`   • ${item.nome}${valor}`);
   }
   return linhas;
 }
@@ -42,8 +43,8 @@ export function textoCompartilhar(
   linhas.push(...secao("🥩 CARNES", resultado.carnes));
   linhas.push(...secao("🧀 EXTRAS DA GRELHA", resultado.extras));
   linhas.push(...secao("🥗 ACOMPANHAMENTOS", resultado.acompanhamentos));
-  linhas.push(...secao("🍨 SOBREMESAS", resultado.sobremesas ?? []));
   linhas.push(...secao("🥤 BEBIDAS", resultado.bebidas));
+  linhas.push(...secao("🍨 SOBREMESAS", resultado.sobremesas ?? []));
 
   linhas.push("");
   linhas.push("_Feito no Sonochurras 🇧🇷 — sonochurras.pages.dev_");

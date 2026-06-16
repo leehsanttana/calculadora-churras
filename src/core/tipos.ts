@@ -37,6 +37,12 @@ export interface Corte {
   fracionado?: boolean;
   /** Só para categoria "extras": unidades por pessoa (ex.: pão de alho 1,5). */
   porPessoa?: number;
+  /**
+   * Só para "extras" vendidos em pacote (pão de alho, queijo coalho): quantas
+   * unidades vêm em cada pacote. Quando presente, o resultado é dado em pacotes
+   * (compra de mercado), não em unidades soltas.
+   */
+  unidadesPorPacote?: number;
 }
 // (marcas de açougue foram removidas do catálogo)
 
@@ -77,11 +83,16 @@ export interface ItemResultado {
   id?: string; // permite buscar a receita do item
   nome: string;
   quantidade: number;
-  unidade: "kg" | "g" | "un" | "L";
+  unidade: "kg" | "g" | "un" | "L" | "pacote";
   categoria?: Categoria;
   dica?: string;
   emoji?: string;
   imagem?: string;
+  /**
+   * Item apenas marcado como "incluído", sem gramatura (ex.: acompanhamentos).
+   * Na lista e no rateio aparece só como presente/ausente — quem leva, leva tudo.
+   */
+  semQuantidade?: boolean;
 }
 
 /** Saída do motor de cálculo. Nenhum valor em R$ — só quantidades. */
@@ -120,6 +131,16 @@ export interface EstadoSala {
   code: string;
   nome: string;
   encerrada: boolean;
+  /**
+   * `false` = lista pessoal (somente leitura para quem abre o link);
+   * `true` = sala de rateio colaborativa (participantes assumem itens).
+   */
+  colaborativa: boolean;
+  /**
+   * Máximo de participantes do rateio (= nº de contribuintes definido na
+   * criação, incluindo o anfitrião). Ao lotar, novos visitantes só visualizam.
+   */
+  maxParticipantes: number;
   resultado: ResultadoChurrasco;
   participantes: ParticipanteSala[];
   compromissos: CompromissoSala[];

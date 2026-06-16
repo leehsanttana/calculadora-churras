@@ -11,6 +11,14 @@ export function formatarPesoKg(kg: number): string {
 
 /** Quantidade de um item de resultado, com a unidade. */
 export function formatarQuantidade(item: ItemResultado): string {
-  if (item.unidade === "kg") return formatarPesoKg(item.quantidade);
-  return `${item.quantidade.toLocaleString("pt-BR")} ${item.unidade}`;
+  return formatarValorUnidade(item.quantidade, item.unidade);
+}
+
+/** Formata um valor solto (quantidade + unidade) — também usado no rateio. */
+export function formatarValorUnidade(quantidade: number, unidade: string): string {
+  if (unidade === "kg") return formatarPesoKg(quantidade);
+  if (unidade === "pacote") {
+    return `${quantidade} ${quantidade === 1 ? "pacote" : "pacotes"}`;
+  }
+  return `${quantidade.toLocaleString("pt-BR")} ${unidade}`;
 }

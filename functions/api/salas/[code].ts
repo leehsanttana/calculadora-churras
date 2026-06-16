@@ -8,8 +8,19 @@ interface SalaRow {
   id: string;
   nome: string;
   resultado_json: string;
+  entrada_json: string;
   encerrada: number;
+  colaborativa: number;
   expira_em: number;
+}
+
+/** Limite de participantes do rateio = nº de contribuintes definido na entrada. */
+function lerMaxParticipantes(entradaJson: string): number {
+  try {
+    const c = Number(JSON.parse(entradaJson)?.contribuintes);
+    if (Number.isFinite(c) && c > 0) return Math.floor(c);
+  } catch {}
+  return 1;
 }
 
 // GET /api/salas/:code — retorna estado completo da sala (polling)
@@ -17,7 +28,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ params, env }) => {
   const code = (params.code as string).toUpperCase();
 
   const sala = await env.DB.prepare(
-    "SELECT id, nome, resultado_json, encerrada, expira_em FROM salas WHERE id = ?",
+    "SELECT id, nome, resultado_json, entrada_json, encerrada, colaborativa, expira_em FROM salas WHERE id = ?",
   ).bind(code).first<SalaRow>();
 
   if (!sala) return erro("Sala não encontrada", 404);
@@ -40,6 +51,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ params, env }) => {
     code: sala.id,
     nome: sala.nome,
     encerrada: sala.encerrada === 1,
+    colaborativa: sala.colaborativa === 1,
+    maxParticipantes: lerMaxParticipantes(sala.entrada_json),
     resultado: JSON.parse(sala.resultado_json),
     participantes,
     compromissos,

@@ -14,6 +14,11 @@ export interface SalaSalva {
   entrada: EntradaChurrasco;
   hostToken: string;
   participanteId: string;
+  /**
+   * `false` = lista pessoal; `true` = sala de rateio ("dividida com a galera").
+   * Ausente em registros antigos (criados antes do split) — trate como `true`.
+   */
+  colaborativa?: boolean;
 }
 
 function disponivel(): boolean {

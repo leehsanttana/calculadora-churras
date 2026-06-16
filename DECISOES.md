@@ -87,8 +87,12 @@ criança ~metade. A gramatura do motor (300/450/600 por duração, −100 com
 acompanhamento, criança ×0,5) está alinhada.
 
 **Extras da grelha** (pão de alho, queijo coalho): categoria selecionável junto
-com as carnes, mas calculada **por pessoa em unidades** — fora do rateio de
-carne e sem arredondar para kg.
+com as carnes, fora do rateio de carne. Calculados **em pacote** (compra de
+mercado): unidades por pessoa ÷ unidades por pacote (≈5/pacote).
+
+**Acompanhamentos** (vinagrete, farofa, arroz…): apenas **selecionar ou não**,
+**sem gramatura**. Na lista aparecem como "incluído" e, no rateio, viram um
+toggle "eu levo" (quem leva, leva tudo) — não há quantidade a dividir.
 
 ### Modelo de dados (coração)
 
@@ -118,17 +122,38 @@ Motor: `(adultos, crianças, perfil, duração, extras, cortes escolhidos)`
 cortes → devolve **cortes + acompanhamentos + bebidas**. Nenhum R$.
 Quantidades em kg, exibidas em **gramas quando < 1 kg**.
 
-**Arredondamento:** cortes **bovinos e suínos** (comprados em peça/açougue) são
-arredondados **pra cima ao quilo cheio**; aves, embutidos e cordeiro mantêm
-granularidade fina. O resultado mostra o **total a comprar** (`totalCompraKg`,
-soma arredondada) com o **ideal** (`totalCarneKg`, gramatura) como subtítulo. O
-rateio (por pessoa / por contribuinte) usa o total a comprar.
+**Arredondamento (valores "cheios"):** cortes **bovinos e suínos** (comprados em
+peça/açougue) são arredondados **pra cima ao quilo cheio**; aves, embutidos e
+cordeiro são arredondados para valores cheios — múltiplos de **200 g** abaixo de
+1 kg e de **0,5 kg** a partir de 1 kg (nunca 820 g ou 1,24 kg). O resultado
+mostra o **total a comprar** (`totalCompraKg`, soma arredondada) com o **ideal**
+(`totalCarneKg`, gramatura) como subtítulo. O rateio usa o total a comprar; no
+rateio, itens em gramas somam de **200 em 200 g**.
 
 **Receitas:** cada corte/acompanhamento tem botão "Modo de preparo" → modal com
 2 receitas (padrão e "para impressionar"). Conteúdo em `data/receitas.ts`.
 
 **Dicas de fogo:** ao salvar um churrasco, mostramos dicas de acender a
 churrasqueira (`data/dicas-fogo.ts`).
+
+### Ciclo de vida de uma lista (pessoal × rateio)
+
+O app serve dois cenários com o mesmo objeto (uma "sala" no D1, campo
+`colaborativa`):
+
+- **Lista pessoal** (`colaborativa = 0`): o usuário monta o churrasco e clica
+  **Salvar lista**. Vira uma lista de compras pessoal — **somente leitura** para
+  quem abre o link (sem entrar com nome, sem editar). Só o dono (quem tem o
+  `hostToken` neste dispositivo) edita, reabrindo a calculadora.
+- **Sala de rateio** (`colaborativa = 1`): a partir da lista salva, o dono clica
+  **Dividir com a galera**. Aí qualquer pessoa com o link entra com o nome e
+  assume itens (compromissos). É o caso coletivo. Sugerido automaticamente
+  quando há **mais de um contribuinte**.
+
+Backend: **Cloudflare Pages Functions + D1** (`functions/api/salas`). Promoção
+via `POST /api/salas/:code/dividir` (anfitrião). Salas/listas expiram em 7 dias.
+*(A linha "Backend: Nenhum no MVP" da seção 3 está superada — o rateio exigiu
+estado compartilhado.)*
 
 **Imagens:** cada corte tem `emoji` ilustrativo; com foto real em
 `/public/cortes/<id>.webp` o `CorteImagem` usa a foto (fallback automático para

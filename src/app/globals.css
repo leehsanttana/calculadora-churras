@@ -67,6 +67,40 @@
   box-shadow: 3px 3px 0 0 var(--foreground);
 }
 
+/* Toast "sticker" que entra saltitando — usado no "Link copiado!". */
+@keyframes toast-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  60% {
+    transform: translateY(-3px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@utility animate-toast-pop {
+  animation: toast-pop 0.34s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+}
+
+/* Dropdown de ações (menu dos 3 pontinhos) — abre a partir do topo. */
+@keyframes dropdown-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@utility animate-dropdown {
+  animation: dropdown-in 0.16s ease-out both;
+  transform-origin: top right;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);

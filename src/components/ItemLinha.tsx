@@ -19,7 +19,7 @@ export default function ItemLinha({ item }: { item: ItemResultado }) {
         <div className="flex items-baseline justify-between gap-3">
           <span className="font-medium">{item.nome}</span>
           <span className="whitespace-nowrap font-semibold tabular-nums text-primary-text">
-            {formatarQuantidade(item)}
+            {item.semQuantidade ? "✓ incluso" : formatarQuantidade(item)}
           </span>
         </div>
         {item.dica && (
